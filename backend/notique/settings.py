@@ -25,8 +25,11 @@ SECRET_KEY = 'django-insecure-j%6nl6=x-(mf8$vu(2l*jp=)&bp$iu_z=_ub0!v*fy=*-84cb=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["https://notique-backend.onrender.com"]
-
+ALLOWED_HOSTS = [
+    "notique-backend.onrender.com",  # Add your Render domain
+    "127.0.0.1",  # For local testing
+    "localhost",
+]
 
 # Application definition
 
