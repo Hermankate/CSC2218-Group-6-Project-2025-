@@ -9,7 +9,7 @@ def main(page: ft.Page):
 
     # Function to fetch notes from the Django API
     def fetch_notes():
-        response = httpx.get("http://127.0.0.1:8000/api/notes/")  # Send GET request to Django
+        response = httpx.get("http://192.168.56.233:8000/api/notes/")  # Send GET request to Django
         if response.status_code == 200:
             notes = response.json()  # Get the notes data in JSON format
             notes_list.controls.clear()  # Clear the list of notes (if any)
@@ -25,7 +25,7 @@ def main(page: ft.Page):
         if new_note:
             # Send a POST request with the new note title as JSON
             response = httpx.post(
-                "http://127.0.0.1:8000/api/notes/", 
+                "http://192.168.56.233:8000/api/notes/", 
                 json={"title": new_note}  # Proper JSON format
             )
             if response.status_code == 201:  # Check if note was successfully created
@@ -40,4 +40,6 @@ def main(page: ft.Page):
     fetch_notes()  # Call the function to load notes on app startup
 
 # Run the Flet app
-ft.app(target=main)
+#ft.app(target=main)
+ft.app(target=main, view=ft.WEB_BROWSER)
+
