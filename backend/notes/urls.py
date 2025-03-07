@@ -1,7 +1,9 @@
 from django.urls import path
-from .views import NoteListCreateView, NoteDetailView
+from .views import *
+
+from django.urls import path
+from .views import get_notes
 
 urlpatterns = [
-    path('notes/', NoteListCreateView.as_view(), name='notes-list'),
-    path('notes/<int:pk>/', NoteDetailView.as_view(), name='note-detail'),
+    path('notes/', get_notes, name='get_notes'),  # This is the endpoint to get all notes
 ]
