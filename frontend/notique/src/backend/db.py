@@ -13,3 +13,31 @@ def init_db():
     ''')
     conn.commit()
     conn.close()
+def add_note(title, content):
+    conn = sqlite3.connect("notes.db")
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO notes (title, content) VALUES (?, ?)", (title, content))
+    conn.commit()
+    conn.close()
+
+def get_notes():
+    conn = sqlite3.connect("notes.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, title, content FROM notes")
+    notes = cursor.fetchall()
+    conn.close()
+    return notes
+
+def update_note(note_id, title, content):
+    conn = sqlite3.connect("notes.db")
+    cursor = conn.cursor()
+    cursor.execute("UPDATE notes SET title = ?, content = ? WHERE id = ?", (title, content, note_id))
+    conn.commit()
+    conn.close()
+
+def delete_note(note_id):
+    conn = sqlite3.connect("notes.db")
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM notes WHERE id = ?", (note_id,))
+    conn.commit()
+    conn.close()
