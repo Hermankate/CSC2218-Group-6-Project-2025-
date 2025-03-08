@@ -1,4 +1,6 @@
 [app]
+target = android
+
 
 # (str) Title of your application
 title = Notique
@@ -72,6 +74,11 @@ osx.kivy_version = 1.9.1
 #
 # Android specific
 #
+
+android.debug_artifact = apk
+android.release_artifact = aab
+
+
 
 # (bool) Indicate if the application should be fullscreen or not
 fullscreen = 0
@@ -442,7 +449,7 @@ warn_on_root = 1
 #    and extend the excluded directories to remove the HD content.
 #
 #[app@demo]
-#title = My Application (demo)
+#title = Notique (demo)
 #
 #[app:source.exclude_patterns@demo]
 #images/hd/*
