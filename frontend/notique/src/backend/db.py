@@ -26,7 +26,10 @@ def get_notes():
     cursor.execute("SELECT id, title, content FROM notes")
     notes = cursor.fetchall()
     conn.close()
-    return notes
+
+    # Convert tuples to dictionaries
+    return [{"id": row[0], "title": row[1], "content": row[2]} for row in notes]
+
 
 def update_note(note_id, title, content):
     conn = sqlite3.connect("notes.db")
