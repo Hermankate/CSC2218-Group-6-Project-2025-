@@ -1,120 +1,199 @@
+from flet import *
 
-import flet as ft
-from backend.db import init_db, add_note, get_notes, update_note, delete_note
-from frontend.ui import note_card
+def main(page: Page):
+    page.title = "Flet Todo Mobile"
+    page.window_width = 360
+    page.window_height = 640
+    page.window_resizable = False
+    page.padding = 0
+    page.spacing = 0
 
-def main(page: ft.Page):
-    page.title = "Notique"
-    page.scroll = "adaptive"
+    BG = "#041955"
+    FWG = "#97b4ff"
+    FG = "#3450a1"
+    PINK = "#eb06ff"
 
-    # Text fields for note input
-    title_input = ft.TextField(label="Title")
-    content_input = ft.TextField(label="Content", multiline=True, min_lines=5)
-    notes_list = ft.Column()
-
-    # Buttons for saving and updating notes
-    save_button = ft.ElevatedButton("Save", on_click=lambda e: save_note())
-    update_button = ft.ElevatedButton("Update", on_click=lambda e: update_existing_note(), visible=False)
-
-    # Handle back button logic
-    def go_back(e):
-        """Reset to 'Create' mode when the back button is pressed."""
-        title_input.value = ""
-        content_input.value = ""
-        save_button.visible = True
-        update_button.visible = False
-        page.update()
-
-    # Function to toggle the drawer
-    def toggle_drawer(e):
-        page.drawer.open = not page.drawer.open
-        page.update()
-
-    # AppBar with Back Button and Drawer Toggle
-    page.appbar = ft.AppBar(
-        leading=ft.IconButton(ft.Icons.ARROW_BACK, on_click=go_back),  # Back button
-        title=ft.Text("Notes"),
-        center_title=True,
-        bgcolor=ft.colors.BLUE,
-        actions=[
-            ft.IconButton(ft.Icons.MENU, on_click=toggle_drawer)  # Menu button
-        ]
+    # Mobile-optimized circle avatar
+    circle = Container(
+        width=80,
+        height=80,
+        border_radius=40,
+        content=CircleAvatar(
+            foreground_image_src="https://images.unsplash.com/photo-1545912452-8aea7e25a3d3?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
+        ),
+        bgcolor=BG,
+        padding=3,
     )
 
-    # Drawer with Upload, Sharing, and Tagging buttons
-    page.drawer = ft.NavigationDrawer(
+    def handle_checkbox_change(e):
+        # This will automatically update the checkbox state
+        print(f"Checkbox value: {e.control.value}")
+        # If you need to update other parts of UI:
+        page.update()
+
+    def shrink(e):
+        page_2.width = page.width * 0.2
+        page_2.scale = transform.Scale(0.7, alignment=alignment.center_right)
+        page_2.border_radius = border_radius.only(
+            top_left=35, top_right=35, bottom_left=35, bottom_right=35
+        )
+        page.update()
+
+    def restore(e):
+        page_2.width = page.width * 1
+        page_2.scale = transform.Scale(1, alignment=alignment.center_right)
+        page_2.border_radius = 35
+        page.update()
+
+    create_task_view = Container(
+        content=IconButton(icon=Icons.CLOSE, on_click=lambda _: page.go("/"))
+    )
+
+    # Mobile-optimized tasks list
+    tasks = ListView(expand=True, spacing=10, padding=padding.only(bottom=20, top=10))
+    
+    for i in range(10):
+        tasks.controls.append(
+            Container(
+                height=60,
+                bgcolor=BG,
+                border_radius=20,
+                padding=padding.only(left=15, top=15),
+                content=Checkbox(
+                            label="My Task",
+                            value=False,  # Initial state
+                            on_change=handle_checkbox_change,
+                            check_color=colors.WHITE,  # Tick color
+                            fill_color=colors.PINK,    # Background when checked
+                            hover_color=colors.PINK_100,
+                        )
+            )
+        )
+
+    # Mobile categories
+    categories_card = ListView(horizontal=True, spacing=10, height=100, padding=10)
+    
+    categories = ["Business", "Family", "Friends"]
+    for i, category in enumerate(categories):
+        categories_card.controls.append(
+            Container(
+                width=140,
+                height=90,
+                bgcolor=BG,
+                border_radius=15,
+                padding=12,
+                content=Column([
+                    Text("40 Tasks", size=12),
+                    Text(category, size=14),
+                    Container(
+                        height=4,
+                        bgcolor="white24",
+                        border_radius=2,
+                        content=Container(bgcolor=PINK, width=60)
+                    )
+                ])
+            )
+        )
+
+    # Main content column
+    main_content = Column(
+        expand=True,
         controls=[
-            ft.ListTile(
-                leading=ft.Icon(ft.Icons.UPLOAD),
-                title=ft.Text("Upload"),
-                on_click=lambda e: print("Upload clicked")
+            Row(
+                alignment="spaceBetween",
+                controls=[
+                    IconButton(icon=Icons.MENU, on_click=shrink),
+                    Row([
+                        IconButton(icon=Icons.SEARCH),
+                        IconButton(icon=Icons.NOTIFICATIONS)
+                    ])
+                ]
             ),
-            ft.ListTile(
-                leading=ft.Icon(ft.Icons.SHARE),
-                title=ft.Text("Share"),
-                on_click=lambda e: print("Share clicked")
-            ),
-            ft.ListTile(
-                leading=ft.Icon(ft.Icons.TAG),
-                title=ft.Text("Tag"),
-                on_click=lambda e: print("Tagging clicked")
+            Text("What's up, Olivia!", size=20, weight="bold"),
+            Text("CATEGORIES", size=12, color="white54"),
+            Container(height=100, content=categories_card),
+            Text("TODAY'S TASKS", size=12, color="white54"),
+            Container(expand=True, content=tasks),
+            FloatingActionButton(
+                icon=Icons.ADD,
+                on_click=lambda _: page.go("/create_task"),
+                bgcolor=PINK
             )
         ]
     )
 
-    # Function to load and display notes
-    def load_notes():
-        """Fetch notes from the database and display them."""
-        notes_list.controls.clear()
-        for note in get_notes():
-            notes_list.controls.append(note_card(note, open_note, delete_note_handler))
-        page.update()
-
-    def save_note():
-        """Save a new note."""
-        if title_input.value and content_input.value:
-            add_note(title_input.value, content_input.value)
-            title_input.value = ""
-            content_input.value = ""
-            load_notes()
-            page.update()
-
-    def open_note(note):
-        """Open a note for editing."""
-        title_input.value = note["title"]
-        content_input.value = note["content"]
-        save_button.visible = False
-        update_button.visible = True
-        page.update()
-
-    def update_existing_note():
-        """Update an existing note."""
-        # Replace with actual logic to get the selected note's ID
-        note_id = 1  # Dummy ID; replace with real ID
-        update_note(note_id, title_input.value, content_input.value)
-        title_input.value = ""
-        content_input.value = ""
-        save_button.visible = True
-        update_button.visible = False
-        load_notes()
-        page.update()
-
-    def delete_note_handler(note_id):
-        """Delete a note from the database and update UI immediately."""
-        delete_note(note_id)
-        load_notes()
-        page.update()
-
-    # Initial view setup
-    page.add(
-        title_input,
-        content_input,
-        save_button,
-        update_button,
-        notes_list
+    # Sidebar (page_1)
+    sidebar = Container(
+        width=page.width * 0.8,
+        bgcolor=BG,
+        padding=padding.only(top=40, left=20, right=20),
+        content=Column([
+            IconButton(icon=Icons.ARROW_BACK, on_click=restore),
+            circle,
+            Text("Olivia Mitchel", size=20, weight="bold"),
+            Divider(height=20, color="white24"),
+            Column([
+                ListTile(
+                    leading=Icon(Icons.FAVORITE_BORDER),
+                    title=Text("Favorites", size=14)
+                ),
+                ListTile(
+                    leading=Icon(Icons.WORK_OUTLINE),
+                    title=Text("Projects", size=14)
+                ),
+                ListTile(
+                    leading=Icon(Icons.BAR_CHART),
+                    title=Text("Statistics", size=14)
+                ),
+            ], spacing=10),
+            Container(expand=True),
+            Column([
+                Text("Good", color=FWG),
+                Text("Consistency", size=16)
+            ])
+        ])
     )
 
-    init_db()  # Initialize database on startup
-    load_notes()  # Load existing notes
+    # Main content container (page_2)
+    page_2 = Container(
+        width=page.width * 0.8,
+        bgcolor=FG,
+        border_radius=35,
+        padding=20,
+        content=main_content,
+        animate=animation.Animation(400, "decelerate"),
+    )
 
-ft.app(target=main)
+    # Mobile layout
+    layout = Stack(
+        expand=True,
+        controls=[
+            Container(bgcolor=BG),
+            sidebar,
+            page_2
+        ]
+    )
+
+    pages = {
+        "/": View("/", [layout]),
+        "/create_task": View("/create_task", [
+            Container(
+                padding=20,
+                content=Column([
+                    AppBar(title=Text("New Task")),
+                    TextField(label="Task title"),
+                    ElevatedButton("Create Task")
+                ])
+            )
+        ])
+    }
+
+    def route_change(route):
+        page.views.clear()
+        page.views.append(pages[route.route])
+        page.update()
+
+    page.on_route_change = route_change
+    page.go(page.route)
+
+app(target=main, view=FLET_APP, assets_dir="assets")
