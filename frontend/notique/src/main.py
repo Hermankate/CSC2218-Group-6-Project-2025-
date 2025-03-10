@@ -184,6 +184,7 @@
 #     page.go("/")
 
 # ft.app(target=main, view=ft.AppView.FLET_APP)
+####################################################################################################################################################################
 import flet as ft
 from backend.db import init_db, add_note, get_notes, update_note, delete_note, get_note_by_id, add_user
 
@@ -413,3 +414,9 @@ def main(page: ft.Page):
     page.go("/signup")
 
 ft.app(target=main, view=ft.AppView.FLET_APP)
+
+
+
+
+
+
