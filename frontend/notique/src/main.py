@@ -1,6 +1,5 @@
-
 import flet as ft
-from backend.db import init_db, add_note, get_notes, update_note, delete_note
+from backend.db import init_db, add_note, get_notes, update_note, delete_note, get_note_by_id  # Ensure get_note_by_id exists
 from frontend.ui import note_card
 
 def todo_app(page: ft.Page, refresh_notes):
@@ -17,9 +16,9 @@ def todo_app(page: ft.Page, refresh_notes):
     tasks = ft.ListView(expand=True, spacing=10, padding=ft.padding.only(bottom=20, top=10))
 
     def load_notes():
-        """Load notes from database and update the task list."""
         tasks.controls.clear()
         for note in get_notes():
+            note_id = note["id"]
             tasks.controls.append(
                 ft.Container(
                     height=60,
@@ -28,17 +27,21 @@ def todo_app(page: ft.Page, refresh_notes):
                     padding=ft.padding.only(left=15, top=15),
                     content=ft.Checkbox(
                         label=note["title"],
-                        value=False,  
-                        check_color=ft.Colors.WHITE,  
-                        fill_color=ft.Colors.PINK,    
+                        value=False,
+                        check_color=ft.Colors.WHITE,
+                        fill_color=ft.Colors.PINK,
                         hover_color=ft.Colors.PINK_100,
-                    )
+                    ),
+                    on_click=lambda e, note_id=note_id: [
+                        page.data.update({"editing_note_id": note_id}),
+                        page.go("/notes")
+                    ]
                 )
             )
         page.update()
 
-    refresh_notes.append(load_notes)  # Allow `notes_app()` to call this when a new note is created.
-    load_notes()  # Load existing notes at the start.
+    refresh_notes.append(load_notes)
+    load_notes()
 
     main_content = ft.Column(
         expand=True,
@@ -68,7 +71,6 @@ def notes_app(page: ft.Page, refresh_notes):
     page.scroll = "adaptive"
 
     def go_back(e):
-        """Navigate back to the main page."""
         page.go("/")  
 
     title_input = ft.TextField(label="Title")
@@ -79,31 +81,27 @@ def notes_app(page: ft.Page, refresh_notes):
     save_button = ft.ElevatedButton("Save", on_click=lambda e: save_note())
     update_button = ft.ElevatedButton("Update", on_click=lambda e: update_existing_note(), visible=False)
 
-    # 🔹 Add Back Button to AppBar
-    # 🔹 Add Back Button to AppBar
     page.appbar = ft.AppBar(
-    leading=ft.IconButton(ft.Icons.ARROW_BACK, on_click=go_back, icon_color=ft.Colors.WHITE),
-    title=ft.Text("Notes", color=ft.Colors.WHITE),
-    center_title=True,
-    bgcolor=ft.Colors.BLUE
-)
+        leading=ft.IconButton(ft.Icons.ARROW_BACK, on_click=go_back, icon_color=ft.Colors.WHITE),
+        title=ft.Text("Notes", color=ft.Colors.WHITE),
+        center_title=True,
+        bgcolor=ft.Colors.BLUE
+    )
 
     def load_notes():
-        """Refresh the notes list in this page."""
         notes_list.controls.clear()
         for note in get_notes():
             notes_list.controls.append(note_card(note, open_note, delete_note_handler))
         page.update()
 
     def save_note():
-        """Save a new note and refresh both pages."""
         if title_input.value and content_input.value:
-            add_note(title_input.value, content_input.value)  
+            add_note(title_input.value, content_input.value)
             title_input.value = ""
             content_input.value = ""
             tag_input.value = ""
             load_notes()
-            for refresh in refresh_notes:  # Update notes in `todo_app`
+            for refresh in refresh_notes:
                 refresh()
             page.update()
 
@@ -113,20 +111,23 @@ def notes_app(page: ft.Page, refresh_notes):
         tag_input.value = ", ".join(note.get("tags", []))
         save_button.visible = False
         update_button.visible = True
+        page.data["current_note_id"] = note["id"]
         page.update()
 
     def update_existing_note():
-        note_id = 1  
-        update_note(note_id, title_input.value, content_input.value)
-        title_input.value = ""
-        content_input.value = ""
-        tag_input.value = ""
-        save_button.visible = True
-        update_button.visible = False
-        load_notes()
-        for refresh in refresh_notes:
-            refresh()
-        page.update()
+        note_id = page.data.get("current_note_id")
+        if note_id:
+            update_note(note_id, title_input.value, content_input.value)
+            title_input.value = ""
+            content_input.value = ""
+            tag_input.value = ""
+            save_button.visible = True
+            update_button.visible = False
+            page.data.pop("current_note_id", None)
+            load_notes()
+            for refresh in refresh_notes:
+                refresh()
+            page.update()
 
     def delete_note_handler(note_id):
         delete_note(note_id)
@@ -134,6 +135,13 @@ def notes_app(page: ft.Page, refresh_notes):
         for refresh in refresh_notes:
             refresh()
         page.update()
+
+    # Check if editing a note from todo_app
+    editing_note_id = page.data.pop("editing_note_id", None)
+    if editing_note_id:
+        note = get_note_by_id(editing_note_id)
+        if note:
+            open_note(note)
 
     note_view = ft.Column(
         controls=[title_input, content_input, tag_input, save_button, update_button, notes_list]
@@ -145,7 +153,8 @@ def notes_app(page: ft.Page, refresh_notes):
     return ft.View("/notes", [note_view])
 
 def main(page: ft.Page):
-    refresh_notes = []  # Shared list for refresh functions
+    page.data = {}
+    refresh_notes = []
 
     def route_change(route):
         page.views.clear()
@@ -156,6 +165,6 @@ def main(page: ft.Page):
         page.update()
 
     page.on_route_change = route_change
-    page.go("/")  
+    page.go("/")
 
-ft.app(target=main, view=ft.AppView.FLET_APP)  # Mobile optimized
+ft.app(target=main, view=ft.AppView.FLET_APP)

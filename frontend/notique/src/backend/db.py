@@ -44,3 +44,13 @@ def delete_note(note_id):
     cursor.execute("DELETE FROM notes WHERE id = ?", (note_id,))
     conn.commit()
     conn.close()
+
+def get_note_by_id(note_id):  # <-- NEW FUNCTION ADDED HERE
+    conn = sqlite3.connect("notes.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, title, content FROM notes WHERE id = ?", (note_id,))
+    note = cursor.fetchone()
+    conn.close()
+    if note:
+        return {"id": note[0], "title": note[1], "content": note[2]}
+    return None
