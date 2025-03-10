@@ -1,5 +1,5 @@
 import flet as ft
-from backend.db import init_db, add_note, get_notes, update_note, delete_note, get_note_by_id  # Ensure get_note_by_id exists
+from backend.db import init_db, add_note, get_notes, update_note, delete_note, get_note_by_id
 from frontend.ui import note_card
 
 def todo_app(page: ft.Page, refresh_notes):
@@ -24,18 +24,28 @@ def todo_app(page: ft.Page, refresh_notes):
                     height=60,
                     bgcolor=BG,
                     border_radius=20,
-                    padding=ft.padding.only(left=15, top=15),
-                    content=ft.Checkbox(
-                        label=note["title"],
-                        value=False,
-                        check_color=ft.Colors.WHITE,
-                        fill_color=ft.Colors.PINK,
-                        hover_color=ft.Colors.PINK_100,
-                    ),
-                    on_click=lambda e, note_id=note_id: [
-                        page.data.update({"editing_note_id": note_id}),
-                        page.go("/notes")
-                    ]
+                    padding=ft.padding.symmetric(horizontal=15),
+                    content=ft.Row(
+                        controls=[
+                            ft.Checkbox(
+                                label=note["title"],
+                                value=False,
+                                check_color=ft.Colors.WHITE,
+                                fill_color=ft.Colors.PINK,
+                                hover_color=ft.Colors.PINK_100,
+                            ),
+                            ft.IconButton(
+                                icon=ft.icons.DELETE,
+                                icon_color="red",
+                                on_click=lambda e, note_id=note_id: [
+                                    delete_note(note_id),
+                                    load_notes(),
+                                    [refresh() for refresh in refresh_notes]
+                                ]
+                            )
+                        ],
+                        alignment="spaceBetween"
+                    )
                 )
             )
         page.update()
@@ -80,6 +90,12 @@ def notes_app(page: ft.Page, refresh_notes):
 
     save_button = ft.ElevatedButton("Save", on_click=lambda e: save_note())
     update_button = ft.ElevatedButton("Update", on_click=lambda e: update_existing_note(), visible=False)
+    back_button = ft.ElevatedButton("Back", on_click=lambda e: page.go("/"))
+
+    button_row = ft.Row(
+        controls=[save_button, update_button, back_button],
+        spacing=10
+    )
 
     page.appbar = ft.AppBar(
         leading=ft.IconButton(ft.Icons.ARROW_BACK, on_click=go_back, icon_color=ft.Colors.WHITE),
@@ -144,7 +160,7 @@ def notes_app(page: ft.Page, refresh_notes):
             open_note(note)
 
     note_view = ft.Column(
-        controls=[title_input, content_input, tag_input, save_button, update_button, notes_list]
+        controls=[title_input, content_input, tag_input, button_row, notes_list]
     )
 
     init_db()
