@@ -51,18 +51,41 @@ def signup_app(page: ft.Page):
         vertical_alignment=ft.MainAxisAlignment.CENTER,
         horizontal_alignment=ft.CrossAxisAlignment.CENTER
     )
-
 def todo_app(page: ft.Page, refresh_notes):
     page.title = "Flet Todo Mobile"
     page.window_width = 360
     page.window_height = 640
     page.window_resizable = False
 
-    BG = "#041955"
-    PINK = "#eb06ff"
+    BG = "#041955" 
+    PINK = "white"
     user_name = page.data["current_user"]["name"]
 
     tasks = ft.ListView(expand=True, spacing=10, padding=ft.padding.only(bottom=20, top=10))
+    
+    # Create navigation drawer
+    drawer = ft.NavigationDrawer(
+        controls=[
+            ft.Container(height=12),
+            ft.NavigationDrawerDestination(
+                label="Profile",
+                icon=ft.icons.PERSON,  # This should be ft.Icons.PERSON
+            ),
+            ft.NavigationDrawerDestination(
+                label="Settings",
+                icon=ft.icons.SETTINGS,  # This should be ft.Icons.SETTINGS
+            ),
+            ft.NavigationDrawerDestination(
+                label="About",
+                icon=ft.icons.INFO,  # This should be ft.Icons.INFO
+            ),
+        ],
+    )
+    page.drawer = drawer
+
+    def open_drawer(e):
+        page.drawer.open = True  # Correct way to open the drawer
+        page.update()
 
     def load_notes():
         tasks.controls.clear()
@@ -108,10 +131,10 @@ def todo_app(page: ft.Page, refresh_notes):
                 [
                     ft.Row(
                         [
-                            ft.IconButton(icon=ft.Icons.MENU),
+                            ft.IconButton(ft.icons.MENU, on_click=open_drawer),  # Should be ft.Icons.MENU
                             ft.Row([
-                                ft.IconButton(icon=ft.Icons.SEARCH),
-                                ft.IconButton(icon=ft.Icons.NOTIFICATIONS)
+                                ft.IconButton(icon=ft.icons.SEARCH),  # Should be ft.Icons.SEARCH
+                                ft.IconButton(icon=ft.icons.NOTIFICATIONS)  # Should be ft.Icons.NOTIFICATIONS
                             ])
                         ],
                         alignment="spaceBetween"
@@ -122,10 +145,15 @@ def todo_app(page: ft.Page, refresh_notes):
                         content=tasks,
                         expand=True
                     ),
-                    ft.FloatingActionButton(
-                        icon=ft.Icons.ADD,
-                        on_click=lambda _: page.go("/notes"),
-                        bgcolor=PINK
+                    ft.Row(
+                        [
+                        ft.FloatingActionButton(
+                                icon=ft.icons.ADD,  # Should be ft.Icons.ADD
+                                on_click=lambda _: page.go("/notes"),
+                                bgcolor= "#eb06ff"
+                        )
+                        ],
+                        alignment="end"
                     )
                 ],
                 expand=True,
@@ -133,7 +161,6 @@ def todo_app(page: ft.Page, refresh_notes):
             )
         ]
     )
-
 def notes_app(page: ft.Page, refresh_notes):
     page.title = "Note-Taking App"
     user_id = page.data["current_user"]["id"]
@@ -228,8 +255,3 @@ def main(page: ft.Page):
     page.go("/signup")
 
 ft.app(target=main, view=ft.AppView.FLET_APP)
-
-
-
-
-
