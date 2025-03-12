@@ -51,6 +51,7 @@ def signup_app(page: ft.Page):
         vertical_alignment=ft.MainAxisAlignment.CENTER,
         horizontal_alignment=ft.CrossAxisAlignment.CENTER
     )
+
 def todo_app(page: ft.Page, refresh_notes):
     page.title = "Flet Todo Mobile"
     page.window_width = 360
@@ -124,6 +125,31 @@ def todo_app(page: ft.Page, refresh_notes):
     refresh_notes.append(load_notes)
     load_notes()
 
+    # Mobile categories
+    categories_card = ft.ListView(horizontal=True, spacing=10, height=100, padding=10)
+    
+    categories = ["Business", "Family", "Friends"]
+    for i, category in enumerate(categories):
+        categories_card.controls.append(
+            ft.Container(
+                width=140,
+                height=90,
+                bgcolor=BG,
+                border_radius=15,
+                padding=12,
+                content=ft.Column([
+                    ft.Text("40 Tasks", size=12),
+                    ft.Text(category, size=14),
+                    ft.Container(
+                        height=4,
+                        bgcolor="white24",
+                        border_radius=2,
+                        content=ft.Container(bgcolor="#000000", width=60)
+                    )
+                ])
+            )
+        )
+
     return ft.View(
         "/",
         [
@@ -140,6 +166,8 @@ def todo_app(page: ft.Page, refresh_notes):
                         alignment="spaceBetween"
                     ),
                     ft.Text(f"What's up, {user_name}!", size=20, weight="bold"),
+                    ft.Text("CATEGORIES", size=12, color="white54"),
+                    ft.Container(height=100, content=categories_card),
                     ft.Text("TODAY'S TASKS", size=12, color="white54"),
                     ft.Container(
                         content=tasks,
