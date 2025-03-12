@@ -59,7 +59,7 @@ def todo_app(page: ft.Page, refresh_notes):
     page.window_resizable = False
 
     BG = "#041955"
-    PINK = "#000000"
+    PINK = "#eb06ff"
     user_name = page.data["current_user"]["name"]
 
     tasks = ft.ListView(expand=True, spacing=10, padding=ft.padding.only(bottom=20, top=10))
