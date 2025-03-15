@@ -73,27 +73,31 @@ def todo_app(page: ft.Page, refresh_notes):
                     foreground_image_src="https://images.unsplash.com/photo-1545912452-8aea7e25a3d3?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
                     radius=30,
                 ),
+                ft.Row([
                 ft.Text(user_name, size=16, weight="bold", color="white"),
-                ft.Divider(height=20, color="white24"),
+                ft.Divider(height=20, color="black"),
                 ft.ListTile(
-                    leading=ft.Icon(ft.icons.PERSON, color="white"),
+                    leading=ft.Icon(ft.icons.PERSON, color="blue"),
                     title=ft.Text("Profile", color="white"),
                 ),
+                ]),
+                ft.Row([
                 ft.ListTile(
-                    leading=ft.Icon(ft.icons.SETTINGS, color="white"),
+                    leading=ft.Icon(ft.icons.SETTINGS, color="blue"),
                     title=ft.Text("Settings", color="white"),
-                ),
+                ),]),
+                ft.Row([
                 ft.ListTile(
-                    leading=ft.Icon(ft.icons.INFO, color="white"),
+                    leading=ft.Icon(ft.icons.INFO, color="blue"),
                     title=ft.Text("About", color="white"),
-                ),
+                ),]),
             ],
             spacing=20
         )
     )
 
     # Toggle sidebar function
-    def toggle_sidebar(e):
+    def toggle_sidebar(e, show_siderbar):
         nonlocal show_sidebar
         show_sidebar = not show_sidebar
         sidebar.visible = show_sidebar
@@ -149,8 +153,8 @@ def todo_app(page: ft.Page, refresh_notes):
                 border_radius=15,
                 padding=12,
                 content=ft.Column([
-                    ft.Text("40 Tasks", size=12),
-                    ft.Text(category, size=14),
+                    ft.Text("40 Tasks", size=12,color="white"),
+                    ft.Text(category, size=14, color="white") ,
                     ft.Container(
                         height=4,
                         bgcolor="white24",
@@ -167,18 +171,18 @@ def todo_app(page: ft.Page, refresh_notes):
             [
                 ft.Row(
                     [
-                        ft.IconButton(ft.icons.MENU, on_click=toggle_sidebar, icon_color="white"),
+                        ft.IconButton(ft.icons.MENU, on_click=toggle_sidebar(e=True ,show_siderbar=True), icon_color="black"),
                         ft.Row([
-                            ft.IconButton(ft.icons.SEARCH, icon_color="white"),
-                            ft.IconButton(ft.icons.NOTIFICATIONS, icon_color="white")
+                            ft.IconButton(ft.icons.SEARCH, icon_color="black"),
+                            ft.IconButton(ft.icons.NOTIFICATIONS, icon_color="black")
                         ])
                     ],
                     alignment="spaceBetween"
                 ),
-                ft.Text(f"What's up, {user_name}!", size=20, weight="bold", color="white"),
-                ft.Text("CATEGORIES", size=12, color="white54"),
+                ft.Text(f"What's up, {user_name}!", size=20, weight="bold", color="black"),
+                ft.Text("CATEGORIES", size=12, color="black"),
                 ft.Container(height=100, content=categories_card),
-                ft.Text("TODAY'S TASKS", size=12, color="white54"),
+                ft.Text("TODAY'S TASKS", size=12, color="black"),
                 ft.Container(expand=True, content=tasks),
                 ft.FloatingActionButton(
                     icon=ft.icons.ADD,
