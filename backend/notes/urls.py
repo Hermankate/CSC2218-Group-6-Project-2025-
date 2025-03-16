@@ -5,6 +5,7 @@ from django.urls import path
 from .views import get_notes
 
 from django.urls import path
+from django.urls import path
 from .views import (
     RegisterView,
     LoginView,
@@ -13,8 +14,8 @@ from .views import (
 )
 
 urlpatterns = [
-    path('api/users/register/', RegisterView.as_view(), name='register'),
-    path('api/users/login/', LoginView.as_view(), name='login'),
-    path('api/notes/', NoteListCreateView.as_view(), name='note-list'),
-    path('api/notes/<int:pk>/', NoteRetrieveUpdateDestroyView.as_view(), name='note-detail'),
+    path('register/', RegisterView.as_view(), name='register'),
+    path('login/', LoginView.as_view(), name='login'),
+    path('notes/', NoteListCreateView.as_view(), name='note-list'),
+    path('notes/<int:pk>/', NoteRetrieveUpdateDestroyView.as_view(), name='note-detail'),
 ]
