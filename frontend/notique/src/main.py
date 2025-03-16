@@ -1,45 +1,63 @@
 import flet as ft
 from backend.db import init_db, add_note, get_notes, update_note, delete_note, get_note_by_id, add_user
-
 def signup_app(page: ft.Page):
     page.title = "Sign Up"
     page.vertical_alignment = "center"
     
-    name_field = ft.TextField(label="Name", width=300)
+    username_field = ft.TextField(label="Username", width=300)
     email_field = ft.TextField(label="Email", width=300)
+    password_field = ft.TextField(
+        label="Password", 
+        password=True, 
+        can_reveal_password=True,  # Show/hide toggle
+        width=300
+    )
     error_text = ft.Text(color="red")
     
     def handle_submit(e):
-        if not name_field.value:
-            error_text.value = "Please enter your name"
-            page.update()
-            return
-        if not email_field.value or "@" not in email_field.value:
-            error_text.value = "Please enter a valid email"
+        # Validate all fields
+        if not all([username_field.value, email_field.value, password_field.value]):
+            error_text.value = "All fields are required"
             page.update()
             return
             
         try:
-            user_id = add_user(name_field.value, email_field.value)
-            page.data["current_user"] = {
-                "id": user_id,
-                "name": name_field.value,
-                "email": email_field.value
-            }
-            page.go("/")
+            # Send registration request to Django
+            response = api.register(
+                username=username_field.value,
+                email=email_field.value,
+                password=password_field.value
+            )
+            
+            if response.status_code == 201:
+                data = response.json()
+                # Store authentication data
+                page.client_storage.set("auth_token", data['token'])
+                page.client_storage.set("current_user", data['user'])
+                page.data["current_user"] = data['user']
+                page.go("/")
+            else:
+                error_text.value = response.json().get('error', 'Registration failed')
+                
         except Exception as e:
-            error_text.value = str(e)
-            page.update()
+            error_text.value = f"Connection error: {str(e)}"
+            
+        page.update()
     
     return ft.View(
         "/signup",
         controls=[
             ft.Column(
                 [
-                    ft.Text("Welcome! Sign Up", size=24, weight="bold"),
-                    name_field,
+                    ft.Text("Create Account", size=24, weight="bold"),
+                    username_field,
                     email_field,
-                    ft.ElevatedButton("Continue", on_click=handle_submit),
+                    password_field,
+                    ft.ElevatedButton("Sign Up", on_click=handle_submit),
+                    ft.TextButton(
+                        "Already have an account? Login",
+                        on_click=lambda _: page.go("/login")  # Add login route
+                    ),
                     error_text
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
@@ -50,7 +68,6 @@ def signup_app(page: ft.Page):
         vertical_alignment=ft.MainAxisAlignment.CENTER,
         horizontal_alignment=ft.CrossAxisAlignment.CENTER
     )
-
 def todo_app(page: ft.Page, refresh_notes):
     page.title = "Flet Todo Mobile"
     page.window_width = 360
