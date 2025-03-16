@@ -61,48 +61,49 @@ def todo_app(page: ft.Page, refresh_notes):
     
     # Sidebar visibility state
     show_sidebar = False
+    # Toggle sidebar function
+
+    def toggle_sidebar(e):
+        nonlocal show_sidebar
+        sidebar.visible = show_sidebar
+        show_sidebar = not show_sidebar
+        sidebar.visible = show_sidebar
+        page.update()
+
 
     # Sidebar (25% width)
     sidebar = ft.Container(
-        width=page.width * 0.25,
+        width=page.width * 0.8,
         bgcolor=BG,
         padding=20,
         content=ft.Column(
             controls=[
-                ft.CircleAvatar(
-                    foreground_image_src="https://images.unsplash.com/photo-1545912452-8aea7e25a3d3?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
-                    radius=30,
-                ),
-                ft.Row([
+                ft.IconButton(
+                    icon=ft.icons.ARROW_BACK,
+                    on_click=lambda _: toggle_sidebar),
+                
+                ft.Column([
                 ft.Text(user_name, size=16, weight="bold", color="white"),
                 ft.Divider(height=20, color="black"),
-                ft.ListTile(
-                    leading=ft.Icon(ft.icons.PERSON, color="blue"),
-                    title=ft.Text("Profile", color="white"),
-                ),
+                ft.Row([
+                ft.Icon(ft.icons.PERSON, color="blue"),
+                ft.Text("Profile", color="white"),
+                ]), 
                 ]),
                 ft.Row([
-                ft.ListTile(
-                    leading=ft.Icon(ft.icons.SETTINGS, color="blue"),
-                    title=ft.Text("Settings", color="white"),
-                ),]),
+                    ft.Icon(ft.icons.SETTINGS, color="blue"),
+                    ft.Text("Settings", color="white"),
+                ]),
                 ft.Row([
-                ft.ListTile(
-                    leading=ft.Icon(ft.icons.INFO, color="blue"),
-                    title=ft.Text("About", color="white"),
-                ),]),
+                    ft.Icon(ft.icons.INFO, color="blue"),
+                    ft.Text("About", color="white"),
+                ]),
             ],
             spacing=20
         )
     )
 
-    # Toggle sidebar function
-    def toggle_sidebar(e, show_siderbar):
-        nonlocal show_sidebar
-        show_sidebar = not show_sidebar
-        sidebar.visible = show_sidebar
-        page.update()
-
+    
     # Main content area
     tasks = ft.ListView(expand=True, spacing=10, padding=ft.padding.only(bottom=20, top=10))
     
@@ -171,7 +172,7 @@ def todo_app(page: ft.Page, refresh_notes):
             [
                 ft.Row(
                     [
-                        ft.IconButton(ft.icons.MENU, on_click=toggle_sidebar(e=True ,show_siderbar=True), icon_color="black"),
+                        ft.IconButton(ft.icons.MENU, on_click=toggle_sidebar, icon_color="black"),
                         ft.Row([
                             ft.IconButton(ft.icons.SEARCH, icon_color="black"),
                             ft.IconButton(ft.icons.NOTIFICATIONS, icon_color="black")
@@ -184,10 +185,13 @@ def todo_app(page: ft.Page, refresh_notes):
                 ft.Container(height=100, content=categories_card),
                 ft.Text("TODAY'S TASKS", size=12, color="black"),
                 ft.Container(expand=True, content=tasks),
+                ft.Row([
+                
                 ft.FloatingActionButton(
                     icon=ft.icons.ADD,
                     on_click=lambda _: page.go("/notes"),
                     bgcolor="#eb06ff"
+                )], alignment= ft.MainAxisAlignment.END
                 )
             ],
             expand=True,
@@ -205,7 +209,7 @@ def todo_app(page: ft.Page, refresh_notes):
             left=0,
             top=0,
             bottom=0,
-            width=page.width * 0.3,  # Sidebar width
+            width=page.width * 0.5,  # Sidebar width
             bgcolor=BG,
             padding=10,
         ),
