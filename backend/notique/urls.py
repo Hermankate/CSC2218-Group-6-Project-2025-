@@ -30,7 +30,10 @@ from django.urls import path, include
 from django.contrib import admin
 from django.urls import path, include
 
+from django.contrib import admin
+from django.urls import path, include
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('notes.urls')),  # This should point to your notes app's URLs
+    path('api/', include('notes.urls')),  # This includes your notes app URLs
 ]
