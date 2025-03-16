@@ -314,6 +314,47 @@ def notes_app(page: ft.Page, refresh_notes):
             )
         ]
     )
+def login_app(page: ft.Page):
+    page.title = "Login"
+    username_field = ft.TextField(label="Username")
+    password_field = ft.TextField(label="Password", password=True)
+    error_text = ft.Text(color="red")
+
+    def handle_login(e):
+        try:
+            response = api.login(
+                username_field.value,
+                password_field.value
+            )
+            if response.status_code == 200:
+                data = response.json()
+                page.client_storage.set("auth_token", data['token'])
+                page.client_storage.set("current_user", data['user'])
+                page.data["current_user"] = data['user']
+                page.go("/")
+            else:
+                error_text.value = "Invalid credentials"
+        except Exception as e:
+            error_text.value = f"Login error: {str(e)}"
+        page.update()
+
+    return ft.View(
+        "/login",
+        [
+            ft.Column(
+                [
+                    ft.Text("Login", size=24),
+                    username_field,
+                    password_field,
+                    ft.ElevatedButton("Login", on_click=handle_login),
+                    ft.TextButton("Create Account", on_click=lambda _: page.go("/signup")),
+                    error_text
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER
+            )
+        ]
+    )
 
 def main(page: ft.Page):
     # Initialize page data and API
