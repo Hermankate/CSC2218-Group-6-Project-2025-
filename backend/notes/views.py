@@ -1,75 +1,88 @@
-from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from .models import Note
-from .serializers import NoteSerializer
-from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from .models import Note
-from .serializers import NoteSerializer
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
+from django.contrib.auth import get_user_model
 from .models import Note
 from .serializers import NoteSerializer, UserSerializer
-from django.contrib.auth import get_user_model
+
 User = get_user_model()
 
 class RegisterView(generics.CreateAPIView):
+    """
+    Handle user registration with token authentication
+    """
+    queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        # Create user with hashed password
+        user = User.objects.create_user(
+            username=serializer.validated_data['username'],
+            email=serializer.validated_data['email'],
+            password=serializer.validated_data['password']
+        )
+        
+        # Create authentication token
+        token, created = Token.objects.get_or_create(user=user)
+        
+        return Response({
+            'user': UserSerializer(user).data,
+            'token': token.key
+        }, status=status.HTTP_201_CREATED)
+
 class LoginView(generics.GenericAPIView):
+    """
+    Handle user login and token generation
+    """
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
+        
         user = authenticate(username=username, password=password)
-        if user:
-            token = Token.objects.get_or_create(user=user)[0]
-            return Response({
-                'user': UserSerializer(user).data,
-                'token': token.key
-            })
-        return Response({'error': 'Invalid Credentials'}, status=400)
+        
+        if not user:
+            return Response(
+                {'error': 'Invalid Credentials'}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+            
+        token, created = Token.objects.get_or_create(user=user)
+        
+        return Response({
+            'user': UserSerializer(user).data,
+            'token': token.key
+        })
 
 class NoteListCreateView(generics.ListCreateAPIView):
+    """
+    Handle listing and creating notes for authenticated users
+    """
     serializer_class = NoteSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        # Return only the current user's notes
         return Note.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
+        # Automatically associate note with current user
         serializer.save(user=self.request.user)
 
 class NoteRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Handle retrieving, updating, and deleting individual notes
+    """
     serializer_class = NoteSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        # Ensure users can only access their own notes
         return Note.objects.filter(user=self.request.user)
-    
-
-
-@api_view(['GET', 'POST'])
-def get_notes(request):
-    if request.method == 'GET':
-        # Fetch all notes from the database and return them
-        notes = Note.objects.all()
-        serializer = NoteSerializer(notes, many=True)
-        return Response(serializer.data)
-    
-    elif request.method == 'POST':
-        # Create a new note and save it in the database
-        title = request.data.get("title", "")
-        if title:
-            note = Note.objects.create(title=title)
-            serializer = NoteSerializer(note)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response({"detail": "Title is required."}, status=status.HTTP_400_BAD_REQUEST)
