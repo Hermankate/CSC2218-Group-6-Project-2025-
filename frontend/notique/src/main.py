@@ -1,5 +1,6 @@
 import flet as ft
-from backend.db import init_db, add_note, get_notes, update_note, delete_note, get_note_by_id, add_user
+from backend.db import init_db, add_note, get_notes, update_note, delete_note, get_note_by_id, add_user , api
+
 def signup_app(page: ft.Page):
     page.title = "Sign Up"
     page.vertical_alignment = "center"
