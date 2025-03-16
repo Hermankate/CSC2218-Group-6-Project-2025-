@@ -115,6 +115,13 @@ def todo_app(page: ft.Page, refresh_notes):
                     ft.Icon(ft.icons.INFO, color="blue"),
                     ft.Text("About", color="white"),
                 ]),
+                # In your todo_app's sidebar controls
+                ft.Row([
+                    ft.IconButton(
+                    ft.Icon(ft.icons.LOGOUT, on_click=lambda e: page.go("/logout")),
+                    ft.Text("Logout"),)
+                   
+            ]),
             ],
             spacing=20
         )
