@@ -316,30 +316,71 @@ def notes_app(page: ft.Page, refresh_notes):
     )
 
 def main(page: ft.Page):
+    # Initialize page data and API
     page.data = {}
     refresh_notes = []
-    init_db()
+    
+    # Check for existing valid session
+    token = page.client_storage.get("auth_token")
+    if token:
+        try:
+            # Set token in API client
+            api.set_token(token)
+            
+            # Verify token validity by making a test request
+            notes_response = api.get_notes()
+            
+            if notes_response.status_code == 200:
+                # Load user data from storage
+                page.data["current_user"] = page.client_storage.get("current_user")
+                page.go("/")  # Redirect to main view
+                return
+            else:
+                # Invalid token, clear storage
+                page.client_storage.remove("auth_token")
+                page.client_storage.remove("current_user")
+                
+        except Exception as e:
+            # Handle network errors
+            print(f"Session validation error: {e}")
+            page.client_storage.clear()
 
     def route_change(e):
         page.views.clear()
         
+        # Route handling
         if page.route == "/signup":
             view = signup_app(page)
+        elif page.route == "/login":
+            view = login_app(page)  # You'll need to implement this
         elif page.route == "/":
             if "current_user" not in page.data:
-                page.go("/signup")
+                page.go("/login")
                 return
             view = todo_app(page, refresh_notes)
         elif page.route.startswith("/notes"):
             if "current_user" not in page.data:
-                page.go("/signup")
+                page.go("/login")
                 return
             view = notes_app(page, refresh_notes)
+        elif page.route == "/logout":
+            # Clear session on logout
+            page.client_storage.remove("auth_token")
+            page.client_storage.remove("current_user")
+            page.data.clear()
+            page.go("/login")
+            return
         
         page.views.append(view)
         page.update()
 
+    # Setup route handlers
     page.on_route_change = route_change
-    page.go("/signup")
+    
+    # Initial route - check if we need to redirect
+    if "current_user" in page.data:
+        page.go("/")
+    else:
+        page.go("/login" if page.client_storage.get("auth_token") else "/signup")
 
 ft.app(target=main, view=ft.AppView.FLET_APP)
