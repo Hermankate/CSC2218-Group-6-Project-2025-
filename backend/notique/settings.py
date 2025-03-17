@@ -34,21 +34,24 @@ ALLOWED_HOSTS = [
 # Application definition
 
 
-
+# Ensure these settings exist
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
-    'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',  # Force JSON responses
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',  # Handle JSON input
     ]
 }
 
-
+CORS_ALLOWED_ORIGINS = [
+    "https://notique-backend.onrender.com",
+    "http://localhost",
+    "http://localhost:8550"
+]
 
 
 
@@ -78,17 +81,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
 ]
-
-
-
-CORS_ALLOWED_ORIGINS = [
-    "https://your-flet-app-domain.com",  # Add your frontend domain
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-]
-
-
-
 
 
 ROOT_URLCONF = 'notique.urls'
