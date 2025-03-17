@@ -436,6 +436,7 @@
 
 # ft.app(target=main, view=ft.AppView.FLET_APP)
 
+
 import flet as ft
 import requests
 from datetime import datetime
