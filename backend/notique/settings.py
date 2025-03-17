@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-j%6nl6=x-(mf8$vu(2l*jp=)&bp$iu_z=_ub0!v*fy=*-84cb='
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     "notique-backend.onrender.com",  # Add your Render domain
@@ -36,16 +36,20 @@ ALLOWED_HOSTS = [
 
 # Ensure these settings exist
 REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-    ],
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',  # Force JSON responses
-    ],
-    'DEFAULT_PARSER_CLASSES': [
-        'rest_framework.parsers.JSONParser',  # Handle JSON input
     ]
 }
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://notique-backend.onrender.com',
+    'http://localhost:8550'
+]
+
 
 CORS_ALLOWED_ORIGINS = [
     "https://notique-backend.onrender.com",
@@ -73,13 +77,14 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    
 ]
 
 
