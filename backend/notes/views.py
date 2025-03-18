@@ -84,3 +84,9 @@ class NoteListCreateView(generics.ListCreateAPIView):
         else:
             local_id = self.request.META.get('HTTP_X_LOCAL_ID')
             serializer.save(local_id=local_id)
+class NoteRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = NoteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Note.objects.filter(user=self.request.user)
