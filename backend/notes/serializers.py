@@ -5,6 +5,25 @@ from .models import Note
 from rest_framework import serializers
 from .models import Note, User
 
+from rest_framework import serializers
+from .models import Note, User
+from django.contrib.auth.password_validation import validate_password
+
+class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password]
+    )
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'password']
+        extra_kwargs = {
+            'email': {'required': False}
+        }
+
+# Keep existing TemporaryUserSerializer and NoteSerializer below
 class TemporaryUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
