@@ -590,6 +590,27 @@ def signup_app(page: ft.Page):
         vertical_alignment=ft.MainAxisAlignment.CENTER,
         horizontal_alignment=ft.CrossAxisAlignment.CENTER
     )
+def welcome_screen(page: ft.Page):
+    def handle_skip():
+        # Generate local ID and store in client storage
+        local_id = str(uuid.uuid4())
+        page.client_storage.set("local_storage_id", local_id)
+        page.go("/")
+
+    return ft.View(
+        "/welcome",
+        [
+            ft.Column(
+                [
+                    ft.Text("Welcome to Notique", size=24),
+                    ft.ElevatedButton("Sign Up", on_click=lambda _: page.go("/signup")),
+                    ft.ElevatedButton("Skip & Use Local Storage", 
+                                    on_click=lambda _: handle_skip()),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER
+            )
+        ]
+    )
 
 def login_app(page: ft.Page):
     page.title = "Login"
@@ -938,21 +959,25 @@ def notes_app(page: ft.Page, refresh_notes):
         ]
     )
 
+
 def main(page: ft.Page):
     page.data = {}
     refresh_notes = []
-    
+    # Check existing auth or local storage
+    if not page.client_storage.get("auth_token") and not page.client_storage.get("local_storage_id"):
+        page.go("/welcome")
+    else:
     # Check existing session
-    token = page.client_storage.get("auth_token")
-    if token:
-        try:
-            api.set_token(token)
-            response = api.get_notes()
-            if response.status_code == 200:
-                page.data["current_user"] = page.client_storage.get("current_user")
-                page.go("/")
-        except:
-            page.client_storage.clear()
+        token = page.client_storage.get("auth_token")
+        if token:
+            try:
+                api.set_token(token)
+                response = api.get_notes()
+                if response.status_code == 200:
+                    page.data["current_user"] = page.client_storage.get("current_user")
+                    page.go("/")
+            except:
+                page.client_storage.clear()
 
     def route_change(e):
         page.views.clear()
