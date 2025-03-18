@@ -10,12 +10,6 @@ User = get_user_model()
 #         fields = ['id', 'username', 'email', 'password']
 #         extra_kwargs = {'password': {'write_only': True}}
 
-# class NoteSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Note
-#         fields = ['id', 'title', 'content', 'created_at', 'user']
-#         read_only_fields = ['user', 'created_at']
-
 
 from django.contrib.auth.password_validation import validate_password  # <-- Add this
 
@@ -37,3 +31,9 @@ class UserSerializer(serializers.ModelSerializer):
             password=validated_data['password']
         )
         return user
+    
+class NoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Note
+        fields = ['id', 'title', 'content', 'created_at', 'user']
+        read_only_fields = ['user', 'created_at']
