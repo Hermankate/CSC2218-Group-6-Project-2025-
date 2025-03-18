@@ -3,37 +3,19 @@ from django.contrib.auth import get_user_model
 from .models import Note
 
 User = get_user_model()
+# serializers.py
+from rest_framework import serializers
+from .models import Note, User
+from django.contrib.auth.password_validation import validate_password
 
-# class UserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ['id', 'username', 'email', 'password']
-#         extra_kwargs = {'password': {'write_only': True}}
-
-
-from django.contrib.auth.password_validation import validate_password  # <-- Add this
-
-class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(
-        write_only=True,
-        required=True,
-        validators=[validate_password]
-    )
-
+class TemporaryUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password']
-        
-    def create(self, validated_data):
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password']
-        )
-        return user
-    
+        fields = ['id', 'username', 'local_storage_id']
+        extra_kwargs = {'username': {'required': False}}
+
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
-        fields = ['id', 'title', 'content', 'created_at', 'user']
-        read_only_fields = ['user', 'created_at']
+        fields = '__all__'
+        extra_kwargs = {'user': {'required': False}}
