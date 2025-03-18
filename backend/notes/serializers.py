@@ -17,7 +17,7 @@ User = get_user_model()
 #         read_only_fields = ['user', 'created_at']
 
 
-
+from django.contrib.auth.password_validation import validate_password  # <-- Add this
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
