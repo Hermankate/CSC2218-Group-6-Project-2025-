@@ -7,6 +7,7 @@ from .views import (
     NoteRetrieveUpdateDestroyView
 )
 
+
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('sync/', sync_notes, name='sync-notes'),
