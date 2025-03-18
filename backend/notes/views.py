@@ -2,22 +2,10 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
-from django.contrib.auth import get_user_model
-from .models import Note, User
-from .serializers import NoteSerializer
-# views.py
-import uuid
 from rest_framework.decorators import api_view
-# views.py
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework import generics, permissions, status
-from rest_framework.response import Response
-from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate
 from .models import Note, User
 from .serializers import NoteSerializer, UserSerializer, TemporaryUserSerializer
+import uuid
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
@@ -39,16 +27,12 @@ class RegisterView(generics.CreateAPIView):
             'token': token.key
         }, status=status.HTTP_201_CREATED)
 
-# Keep the existing sync_notes and NoteListCreateView code below
-
 @api_view(['POST'])
 def sync_notes(request):
     try:
-        # Handle local storage sync
         local_id = request.data.get('local_storage_id')
         notes = request.data.get('notes', [])
         
-        # Get or create temporary user
         user, created = User.objects.get_or_create(
             local_storage_id=local_id,
             defaults={
@@ -57,10 +41,8 @@ def sync_notes(request):
             }
         )
         
-        # Update notes with user relationship
         Note.objects.filter(local_id=local_id).update(user=user, local_id=None)
         
-        # Return sync token
         token, _ = Token.objects.get_or_create(user=user)
         return Response({
             'token': token.key,
@@ -70,8 +52,10 @@ def sync_notes(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-
 class NoteListCreateView(generics.ListCreateAPIView):
+    serializer_class = NoteSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
     def get_queryset(self):
         if self.request.user.is_authenticated:
             return Note.objects.filter(user=self.request.user)
@@ -84,9 +68,13 @@ class NoteListCreateView(generics.ListCreateAPIView):
         else:
             local_id = self.request.META.get('HTTP_X_LOCAL_ID')
             serializer.save(local_id=local_id)
+
 class NoteRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = NoteSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        return Note.objects.filter(user=self.request.user)
+        if self.request.user.is_authenticated:
+            return Note.objects.filter(user=self.request.user)
+        local_id = self.request.META.get('HTTP_X_LOCAL_ID')
+        return Note.objects.filter(local_id=local_id)

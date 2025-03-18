@@ -1,11 +1,4 @@
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
-from .models import Note
-# serializers.py
-from rest_framework import serializers
-from .models import Note, User
-
-from rest_framework import serializers
 from .models import Note, User
 from django.contrib.auth.password_validation import validate_password
 
@@ -23,7 +16,6 @@ class UserSerializer(serializers.ModelSerializer):
             'email': {'required': False}
         }
 
-# Keep existing TemporaryUserSerializer and NoteSerializer below
 class TemporaryUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

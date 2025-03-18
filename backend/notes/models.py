@@ -1,18 +1,3 @@
-from django.db import models
-
-# Create your models here.
-from django.db import models
-
-from django.db import models
-
-from django.contrib.auth.models import AbstractUser
-from django.db import models
-
-from django.contrib.auth.models import AbstractUser
-from django.db import models
-# models.py
-from django.contrib.auth.models import AbstractUser
-# models.py
 import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
