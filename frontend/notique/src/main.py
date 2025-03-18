@@ -958,6 +958,22 @@ def notes_app(page: ft.Page, refresh_notes):
             )
         ]
     )
+def show_sync_dialog(page: ft.Page):
+    def handle_sync(e):
+        # Sync logic here
+        pass
+
+    page.dialog = ft.AlertDialog(
+        title=ft.Text("Sync Notes"),
+        content=ft.Column([
+            ft.Text("Create account to sync across devices"),
+            ft.TextField(label="Email"),
+            ft.TextField(label="Password", password=True),
+            ft.ElevatedButton("Sync Now", on_click=handle_sync)
+        ])
+    )
+    page.dialog.open = True
+    page.update()
 
 
 def main(page: ft.Page):
