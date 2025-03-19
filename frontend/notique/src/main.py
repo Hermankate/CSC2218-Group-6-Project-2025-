@@ -324,6 +324,7 @@
 #             )
 #         ]
 #     )
+
 # def login_app(page: ft.Page):
 #     page.title = "Login"
 #     username_field = ft.TextField(label="Username")
@@ -1837,6 +1838,90 @@ def login_app(page: ft.Page):
         ]
     )
 
+
+
+
+
+
+# def notes_app(page: ft.Page, refresh_notes):
+#     page.title = "Note-Taking App"
+#     user_id = page.data["current_user"]["id"]
+#     note_id = page.route.split("=")[1] if "note_id" in page.route else None
+
+#     title_input = ft.TextField(label="Title")
+#     content_input = ft.TextField(label="Content", multiline=True, min_lines=5)
+#     notes_list = ft.Column(scroll=ft.ScrollMode.ADAPTIVE)
+
+#     def load_notes():
+#         notes_list.controls.clear()
+#         for note in get_notes(user_id):
+#             notes_list.controls.append(
+#                 ft.ListTile(
+#                     title=ft.Text(note["title"]),
+#                     subtitle=ft.Text(note["content"]),
+#                     on_click=lambda e, nid=note["id"]: open_note(nid)
+#                 )
+#             )
+#         page.update()
+
+#     def save_note(e):
+#         if title_input.value and content_input.value:
+#             if note_id:
+#                 update_note(note_id, title_input.value, content_input.value)
+#             else:
+#                 add_note(user_id, title_input.value, content_input.value)
+#             title_input.value = ""
+#             content_input.value = ""
+#             [refresh() for refresh in refresh_notes]
+#             page.go("/")
+
+#     def open_note(nid):
+#         note = get_note_by_id(nid)
+#         if note:
+#             title_input.value = note["title"]
+#             content_input.value = note["content"]
+#             page.update()
+
+#     # Load existing note if editing
+#     if note_id:
+#         note = get_note_by_id(note_id)
+#         if note:
+#             title_input.value = note["title"]
+#             content_input.value = note["content"]
+
+#     return ft.View(
+#         "/notes",
+#         [
+#             ft.AppBar(
+#                 title=ft.Text("Notes"),
+#                 bgcolor=ft.colors.BLUE,
+#                 leading=ft.IconButton(
+#                     icon=ft.icons.ARROW_BACK,
+#                     on_click=lambda _: page.go("/")
+#                 )
+#             ),
+#             ft.Column(
+#                 [
+#                     title_input,
+#                     content_input,
+#                     ft.Row(
+#                         [
+#                             ft.ElevatedButton("Save", on_click=save_note),
+#                             ft.ElevatedButton("Cancel", on_click=lambda _: page.go("/"))
+#                         ],
+#                         spacing=10
+#                     ),
+#                     notes_list
+#                 ],
+#                 expand=True,
+#                 scroll=ft.ScrollMode.ADAPTIVE,
+#             )
+#         ]
+#     )
+
+
+
+
 def note_editor(page: ft.Page, refresh_notes):
     title_input = ft.TextField(label="Title", autofocus=True)
     content_input = ft.TextField(label="Content", multiline=True, min_lines=5)
@@ -1875,18 +1960,24 @@ def note_editor(page: ft.Page, refresh_notes):
                 response = api.update_note(note_id, **note_data)
             else:
                 response = api.create_note(**note_data)
+                page.go("/")
 
             if response and response.status_code in [200, 201]:
                 [refresh() for refresh in refresh_notes]
                 page.go("/")
             else:
                 handle_offline_save(note_data)
+                page.go("/")
 
         except Exception as e:
             show_snackbar(page, f"Error: {str(e)}")
         finally:
             loading.visible = False
             page.update()
+
+
+
+
 
     def handle_offline_save(note_data):
         local_notes = page.client_storage.get("local_notes") or []
