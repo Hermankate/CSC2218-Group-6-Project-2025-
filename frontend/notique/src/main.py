@@ -1838,90 +1838,6 @@ def login_app(page: ft.Page):
         ]
     )
 
-
-
-
-
-
-# def notes_app(page: ft.Page, refresh_notes):
-#     page.title = "Note-Taking App"
-#     user_id = page.data["current_user"]["id"]
-#     note_id = page.route.split("=")[1] if "note_id" in page.route else None
-
-#     title_input = ft.TextField(label="Title")
-#     content_input = ft.TextField(label="Content", multiline=True, min_lines=5)
-#     notes_list = ft.Column(scroll=ft.ScrollMode.ADAPTIVE)
-
-#     def load_notes():
-#         notes_list.controls.clear()
-#         for note in get_notes(user_id):
-#             notes_list.controls.append(
-#                 ft.ListTile(
-#                     title=ft.Text(note["title"]),
-#                     subtitle=ft.Text(note["content"]),
-#                     on_click=lambda e, nid=note["id"]: open_note(nid)
-#                 )
-#             )
-#         page.update()
-
-#     def save_note(e):
-#         if title_input.value and content_input.value:
-#             if note_id:
-#                 update_note(note_id, title_input.value, content_input.value)
-#             else:
-#                 add_note(user_id, title_input.value, content_input.value)
-#             title_input.value = ""
-#             content_input.value = ""
-#             [refresh() for refresh in refresh_notes]
-#             page.go("/")
-
-#     def open_note(nid):
-#         note = get_note_by_id(nid)
-#         if note:
-#             title_input.value = note["title"]
-#             content_input.value = note["content"]
-#             page.update()
-
-#     # Load existing note if editing
-#     if note_id:
-#         note = get_note_by_id(note_id)
-#         if note:
-#             title_input.value = note["title"]
-#             content_input.value = note["content"]
-
-#     return ft.View(
-#         "/notes",
-#         [
-#             ft.AppBar(
-#                 title=ft.Text("Notes"),
-#                 bgcolor=ft.colors.BLUE,
-#                 leading=ft.IconButton(
-#                     icon=ft.icons.ARROW_BACK,
-#                     on_click=lambda _: page.go("/")
-#                 )
-#             ),
-#             ft.Column(
-#                 [
-#                     title_input,
-#                     content_input,
-#                     ft.Row(
-#                         [
-#                             ft.ElevatedButton("Save", on_click=save_note),
-#                             ft.ElevatedButton("Cancel", on_click=lambda _: page.go("/"))
-#                         ],
-#                         spacing=10
-#                     ),
-#                     notes_list
-#                 ],
-#                 expand=True,
-#                 scroll=ft.ScrollMode.ADAPTIVE,
-#             )
-#         ]
-#     )
-
-
-
-
 def note_editor(page: ft.Page, refresh_notes):
     title_input = ft.TextField(label="Title", autofocus=True)
     content_input = ft.TextField(label="Content", multiline=True, min_lines=5)
@@ -1974,10 +1890,6 @@ def note_editor(page: ft.Page, refresh_notes):
         finally:
             loading.visible = False
             page.update()
-
-
-
-
 
     def handle_offline_save(note_data):
         local_notes = page.client_storage.get("local_notes") or []
@@ -2039,6 +1951,7 @@ def main_notes_view(page: ft.Page, refresh_notes):
                 [
                     ft.Checkbox(
                         label=note["title"],
+                        label_style=ft.TextStyle(color="white"),
                         value=False,
                         check_color=ft.colors.WHITE,
                         fill_color=ft.colors.PINK
@@ -2131,6 +2044,7 @@ def main_notes_view(page: ft.Page, refresh_notes):
 
     sidebar = ft.Container(
         width=280,
+        height=page.height,
         bgcolor=BG,
         padding=20,
         content=ft.Column(
@@ -2139,17 +2053,17 @@ def main_notes_view(page: ft.Page, refresh_notes):
                 ft.Text(user_name, size=18, weight="bold", color="white"),
                 ft.Divider(color="white24"),
                 ft.ListTile(
-                    leading=ft.Icon(ft.icons.SYNC),
-                    title=ft.Text("Sync Now"),
+                    leading=ft.Icon(ft.icons.SYNC,color="black"),
+                    title=ft.Text("Sync Now",color="white" ),
                     on_click=sync_notes
                 ),
                 ft.ListTile(
-                    leading=ft.Icon(ft.icons.SETTINGS),
-                    title=ft.Text("Settings")
+                    leading=ft.Icon(ft.icons.SETTINGS,color="black"),
+                    title=ft.Text("Settings",color="white")
                 ),
                 ft.ListTile(
                     leading=ft.Icon(ft.icons.EXIT_TO_APP, color="red"),
-                    title=ft.Text("Logout"),
+                    title=ft.Text("Logout",color="white"),
                     on_click=lambda e: page.go("/logout")
                 )
             ],
@@ -2159,7 +2073,7 @@ def main_notes_view(page: ft.Page, refresh_notes):
     )
 
     main_content = ft.Container(
-        content=ft.Column(
+        ft.Column(
             [
                 ft.Row(
                     [
@@ -2183,8 +2097,8 @@ def main_notes_view(page: ft.Page, refresh_notes):
                                 bgcolor=BG,
                                 border_radius=15,
                                 content=ft.Column([
-                                    ft.Text("Total Notes", size=12),
-                                    ft.Text(str(len(tasks.controls)), size=20, weight="bold"),
+                                    ft.Text("Total Notes", size=12 , color="white"),
+                                    ft.Text(str(len(tasks.controls)), size=20, weight="bold", color="white"),
                                     ft.ProgressBar(value=0.7, width=400)
                                 ])
                             )
@@ -2192,21 +2106,32 @@ def main_notes_view(page: ft.Page, refresh_notes):
                     )
                 ),
                 ft.Text("Your Notes", size=16),
-                ft.Container(expand=True, content=tasks),
-                ft.FloatingActionButton(
-                    icon=ft.icons.ADD,
-                    on_click=lambda e: page.go("/notes"),
-                    bgcolor=ft.colors.PINK_ACCENT
-                )
-            ],
-            expand=True,
-            spacing=20
-        )
+                        
+                                ft.Column([
+                                    ft.ListView(
+                                        controls=[ft.Container(expand=True, content=tasks),]),
+                                     ],    
+                                    expand=True,
+                                    spacing=20
+                                            ),
+                                            
+            ]
+
+        ) 
+          
     )
+    fab =ft.FloatingActionButton(
+                                                    icon=ft.icons.ADD,
+                                                    on_click=lambda e: page.go("/notes"),
+                                                    bgcolor=ft.colors.PINK_ACCENT,
+                                                     right=20,  # Position from right edge
+    bottom=20  # Position from bottom edge
+                                                                        )
+    
 
     load_notes()
     refresh_notes.append(load_notes)  # Critical fix for refresh propagation
-    return ft.View("/", [ft.Stack([main_content, sidebar]), loading])
+    return ft.View("/", [ft.Stack([main_content,fab, sidebar]), loading])
 
 def main(page: ft.Page):
     page.title = "Notique"
@@ -2251,5 +2176,6 @@ def main(page: ft.Page):
         page.go("/welcome")
     else:
         page.go("/")
+        
         
 ft.app(target=main, view=ft.AppView.FLET_APP, assets_dir="assets")
