@@ -1593,11 +1593,91 @@
 # ft.app(target=main, view=ft.AppView.FLET_APP, assets_dir="assets")
 ##############################################################################
 ##############################################################################
+
 import uuid
 import flet as ft
 import requests
 from datetime import datetime
 
+# class API:
+#     def __init__(self, base_url):
+#         self.base_url = base_url
+#         self.token = None
+#         self.local_id = None
+        
+#     def set_credentials(self, token=None, local_id=None):
+#         self.token = token
+#         self.local_id = local_id
+        
+#     def _headers(self):
+#         headers = {"Content-Type": "application/json"}
+#         if self.token:
+#             headers["Authorization"] = f"Bearer {self.token}"
+#         if self.local_id:
+#             headers["X-Local-ID"] = self.local_id
+#         return headers
+        
+#     def register(self, username, email, password):
+#         try:
+#             return requests.post(
+#                 f"{self.base_url}/api/register/",
+#                 json={"username": username, "email": email, "password": password}
+#             )
+#         except requests.exceptions.ConnectionError:
+#             return None
+        
+#     def login(self, username, password):
+#         try:
+#             return requests.post(
+#                 f"{self.base_url}/api/login/",
+#                 json={"username": username, "password": password}
+#             )
+#         except requests.exceptions.ConnectionError:
+#             return None
+            
+#     def get_notes(self):
+#         try:
+#             return requests.get(f"{self.base_url}/api/notes/", headers=self._headers())
+#         except requests.exceptions.ConnectionError:
+#             return None
+            
+#     def create_note(self, title, content):
+#         try:
+#             return requests.post(
+#                 f"{self.base_url}/api/notes/",
+#                 headers=self._headers(),
+#                 json={"title": title, "content": content}
+#             )
+#         except requests.exceptions.ConnectionError:
+#             return None
+
+#     def update_note(self, note_id, title, content):
+#         try:
+#             return requests.put(
+#                 f"{self.base_url}/api/notes/{note_id}/",
+#                 headers=self._headers(),
+#                 json={"title": title, "content": content}
+#             )
+#         except requests.exceptions.ConnectionError:
+#             return None
+
+#     def delete_note(self, note_id):
+#         try:
+#             return requests.delete(
+#                 f"{self.base_url}/api/notes/{note_id}/",
+#                 headers=self._headers()
+#             )
+#         except requests.exceptions.ConnectionError:
+#             return None
+
+#     def sync_notes(self, local_id, notes):
+#         try:
+#             return requests.post(
+#                 f"{self.base_url}/api/sync/",
+#                 json={"local_storage_id": local_id, "notes": notes}
+#             )
+#         except requests.exceptions.ConnectionError:
+#             return None
 class API:
     def __init__(self, base_url):
         self.base_url = base_url
@@ -1606,37 +1686,58 @@ class API:
         
     def set_credentials(self, token=None, local_id=None):
         self.token = token
-        self.local_id = local_id
+        self.local_id = local_id or str(uuid.uuid4())  # Generate local ID if not provided
         
     def _headers(self):
         headers = {"Content-Type": "application/json"}
         if self.token:
-            headers["Authorization"] = f"Bearer {self.token}"
-        if self.local_id:
+            # Changed from Bearer to Token for Django REST Framework
+            headers["Authorization"] = f"Token {self.token}"
+        if self.local_id and not self.token:
             headers["X-Local-ID"] = self.local_id
         return headers
         
     def register(self, username, email, password):
         try:
-            return requests.post(
+            response = requests.post(
                 f"{self.base_url}/api/register/",
                 json={"username": username, "email": email, "password": password}
             )
+            if response.status_code == 201:
+                data = response.json()
+                self.set_credentials(token=data.get('token'))
+            return response
         except requests.exceptions.ConnectionError:
             return None
+        except Exception as e:
+            print(f"Registration error: {str(e)}")
+            return None
         
-    def login(self, username, password):
+    def login(self, email, password):  # Changed from username to email
         try:
-            return requests.post(
+            response = requests.post(
                 f"{self.base_url}/api/login/",
-                json={"username": username, "password": password}
+                json={"username": email, "password": password}  # Changed to email
             )
+            if response.status_code == 200:
+                data = response.json()
+                self.set_credentials(token=data.get('token'))
+            return response
         except requests.exceptions.ConnectionError:
+            return None
+        except Exception as e:
+            print(f"Login error: {str(e)}")
             return None
             
     def get_notes(self):
         try:
-            return requests.get(f"{self.base_url}/api/notes/", headers=self._headers())
+            response = requests.get(
+                f"{self.base_url}/api/notes/", 
+                headers=self._headers()
+            )
+            if response.status_code == 401:
+                self.handle_unauthorized()
+            return response
         except requests.exceptions.ConnectionError:
             return None
             
@@ -1645,7 +1746,11 @@ class API:
             return requests.post(
                 f"{self.base_url}/api/notes/",
                 headers=self._headers(),
-                json={"title": title, "content": content}
+                json={
+                    "title": title, 
+                    "content": content,
+                    "local_id": self.local_id  # Include local ID for sync
+                }
             )
         except requests.exceptions.ConnectionError:
             return None
@@ -1678,6 +1783,9 @@ class API:
         except requests.exceptions.ConnectionError:
             return None
 
+
+
+
 api = API("http://127.0.0.1:8000")
 
 def show_snackbar(page: ft.Page, message: str):
@@ -1698,19 +1806,20 @@ def welcome_screen(page: ft.Page):
             ft.Column(
                 [
                     ft.Text("Welcome to Notique", size=24, weight="bold"),
-                    ft.ElevatedButton("Sign Up", on_click=lambda e: page.go("/signup")),
-                    ft.ElevatedButton("Continue Offline", on_click=handle_skip),
-                    ft.TextButton(
-                        "Restore Backup", 
-                        on_click=lambda e: show_snackbar(page, "Backup restore not implemented yet")
-                    ),
+                    ft.Row([
+                        ft.ElevatedButton("Sign Up", on_click=lambda e: page.go("/signup")),
+
+                        ft.ElevatedButton("Continue Offline", on_click=handle_skip),
+                   
+                    ],alignment=ft.MainAxisAlignment.CENTER
+                    )
+                    
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
                 spacing=20
             )
         ]
     )
-
 def signup_app(page: ft.Page):
     username_field = ft.TextField(label="Username", autofocus=True)
     email_field = ft.TextField(label="Email")
@@ -1726,35 +1835,43 @@ def signup_app(page: ft.Page):
 
         if not all([username, email, password]):
             error_text.value = "All fields are required"
-            return page.update()
+            page.update()
+            return
 
         try:
             loading.visible = True
             page.update()
             
             response = api.register(username, email, password)
-            if response and response.status_code == 201:
+            
+            if response is None:
+                error_text.value = "Cannot connect to server"
+                return
+                
+            print(f"Response Status: {response.status_code}")
+            print(f"Response Content: {response.text}")
+
+            if response.status_code == 201:
                 data = response.json()
+                api.set_credentials(token=data['token'])
                 page.client_storage.set("auth_token", data['token'])
                 page.client_storage.set("current_user", data['user'])
                 page.data["current_user"] = data['user']
                 page.go("/")
             else:
-                handle_error(response)
+                try:
+                    error_data = response.json()
+                    error_text.value = "\n".join(
+                        [f"{k}: {v}" for k, v in error_data.items()]
+                    ) if isinstance(error_data, dict) else str(error_data)
+                except:
+                    error_text.value = f"Server error: {response.status_code}"
 
         except Exception as e:
             error_text.value = f"Error: {str(e)}"
         finally:
             loading.visible = False
             page.update()
-
-    def handle_error(response):
-        try:
-            error_data = response.json()
-            errors = "\n".join([f"{k}: {v[0]}" for k, v in error_data.items()])
-            error_text.value = errors
-        except:
-            error_text.value = "Registration failed. Please try again."
 
     return ft.View(
         "/signup",
@@ -1766,7 +1883,8 @@ def signup_app(page: ft.Page):
                     email_field,
                     password_field,
                     ft.ElevatedButton("Sign Up", on_click=handle_submit),
-                    ft.TextButton("Have an account? Login", on_click=lambda e: page.go("/login")),
+                    ft.TextButton("Have an account? Login", 
+                               on_click=lambda e: page.go("/login")),
                     loading,
                     error_text
                 ],
@@ -1776,19 +1894,19 @@ def signup_app(page: ft.Page):
             )
         ]
     )
-
 def login_app(page: ft.Page):
-    username_field = ft.TextField(label="Username", autofocus=True)
+    # Change username field to email field
+    email_field = ft.TextField(label="Email", autofocus=True)
     password_field = ft.TextField(label="Password", password=True)
     error_text = ft.Text(color="red")
     loading = ft.ProgressBar(visible=False)
 
     def handle_login(e):
         error_text.value = ""
-        username = username_field.value.strip()
+        email = email_field.value.strip()  # Changed from username to email
         password = password_field.value
 
-        if not all([username, password]):
+        if not all([email, password]):
             error_text.value = "All fields are required"
             return page.update()
 
@@ -1796,9 +1914,13 @@ def login_app(page: ft.Page):
             loading.visible = True
             page.update()
             
-            response = api.login(username, password)
+            # Update to use email instead of username
+            response = api.login(email, password)
+            
             if response and response.status_code == 200:
                 data = response.json()
+                # Set credentials in both API and client storage
+                api.set_credentials(token=data['token'])
                 page.client_storage.set("auth_token", data['token'])
                 page.client_storage.set("current_user", data['user'])
                 page.data["current_user"] = data['user']
@@ -1814,10 +1936,21 @@ def login_app(page: ft.Page):
 
     def handle_error(response):
         try:
+            if not response:
+                error_text.value = "Cannot connect to server"
+                return
+                
             error_data = response.json()
-            error_text.value = error_data.get('detail', 'Invalid credentials')
+            # Handle different error formats
+            if 'non_field_errors' in error_data:
+                error_text.value = "\n".join(error_data['non_field_errors'])
+            elif 'detail' in error_data:
+                error_text.value = error_data['detail']
+            else:
+                error_text.value = "Invalid email or password"
+                
         except:
-            error_text.value = "Login failed. Please try again."
+            error_text.value = f"Login failed (status {response.status_code})"
 
     return ft.View(
         "/login",
@@ -1825,7 +1958,7 @@ def login_app(page: ft.Page):
             ft.Column(
                 [
                     ft.Text("Login", size=24, weight="bold"),
-                    username_field,
+                    email_field,  # Changed from username_field
                     password_field,
                     ft.ElevatedButton("Login", on_click=handle_login),
                     ft.TextButton("Create Account", on_click=lambda e: page.go("/signup")),
@@ -1837,7 +1970,6 @@ def login_app(page: ft.Page):
             )
         ]
     )
-
 def note_editor(page: ft.Page, refresh_notes):
     title_input = ft.TextField(label="Title", autofocus=True)
     content_input = ft.TextField(label="Content", multiline=True, min_lines=5)
@@ -2121,14 +2253,13 @@ def main_notes_view(page: ft.Page, refresh_notes):
           
     )
     fab =ft.FloatingActionButton(
-                                                    icon=ft.icons.ADD,
-                                                    on_click=lambda e: page.go("/notes"),
-                                                    bgcolor=ft.colors.PINK_ACCENT,
-                                                     right=20,  # Position from right edge
+                icon=ft.icons.ADD,
+                on_click=lambda e: page.go("/notes"),
+                bgcolor=ft.colors.PINK_ACCENT,
+                right=20,  # Position from right edge
     bottom=20  # Position from bottom edge
                                                                         )
     
-
     load_notes()
     refresh_notes.append(load_notes)  # Critical fix for refresh propagation
     return ft.View("/", [ft.Stack([main_content,fab, sidebar]), loading])
