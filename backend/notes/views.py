@@ -6,27 +6,35 @@ from rest_framework.decorators import api_view
 from .models import Note, User
 from .serializers import NoteSerializer, UserSerializer, TemporaryUserSerializer
 import uuid
+# views.py
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.tokens import RefreshToken
 
-class RegisterView(generics.CreateAPIView):
-    serializer_class = UserSerializer
-    permission_classes = [permissions.AllowAny]
+User = get_user_model()
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        user = User.objects.create_user(
-            username=serializer.validated_data['username'],
-            email=serializer.validated_data.get('email'),
-            password=serializer.validated_data['password']
-        )
-        
-        token = Token.objects.create(user=user)
-        return Response({
-            'user': UserSerializer(user).data,
-            'token': token.key
-        }, status=status.HTTP_201_CREATED)
-
+class RegisterView(APIView):
+    def post(self, request):
+        data = request.data
+        try:
+            user = User.objects.create_user(
+                username=data['username'],
+                email=data['email'],
+                password=data['password']
+            )
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'token': str(refresh.access_token),
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email
+                }
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 @api_view(['POST'])
 def sync_notes(request):
     try:
