@@ -4,9 +4,10 @@ from .views import register, sync_notes, NoteListCreateView, NoteRetrieveUpdateD
 
 from django.urls import path
 from .views import register, sync_notes, NoteListCreateView, NoteRetrieveUpdateDestroyView
-
+from .views import CustomAuthToken 
 urlpatterns = [
     path('register/', register, name='register'),
+    path('login/', CustomAuthToken.as_view(), name='login'),
     path('sync/', sync_notes, name='sync_notes'),
     path('notes/', NoteListCreateView.as_view(), name='note-list-create'),
     path('notes/<int:pk>/', NoteRetrieveUpdateDestroyView.as_view(), name='note-retrieve-update-destroy'),
