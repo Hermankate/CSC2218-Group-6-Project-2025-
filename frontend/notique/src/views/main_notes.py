@@ -1,10 +1,12 @@
+
 import flet as ft
 from api import api
 from utilities import show_snackbar
 
 def main_notes_view(page: ft.Page, refresh_notes):
     BG = "#041955"
-    user_name = page.data.get("current_user", {}).get("username", "Guest")
+    # Fixed client storage access with proper default handling
+    user_name = (page.client_storage.get("current_user") or {}).get("username", "Guest")
     tasks = ft.ListView(expand=True, spacing=10)
     loading = ft.ProgressBar(visible=False)
     show_sidebar = False
@@ -149,8 +151,17 @@ def main_notes_view(page: ft.Page, refresh_notes):
             if response and response.status_code == 200:
                 page.client_storage.remove("local_notes")
                 data = response.json()
-                page.client_storage.set("auth_token", data['token'])
-                page.client_storage.set("current_user", data['user'])
+                page.client_storage.set("auth_token", data.get('token', ''))
+                # Fixed user data handling
+                page.client_storage.set("current_user", data.get('user', {}))
+                
+                # Update username display
+                nonlocal user_name
+                user_data = data.get('user', {})
+                user_name = user_data.get("username", "Guest")
+                sidebar_username.current.value = user_name
+                welcome_text.current.value = f"Welcome back, {user_name}!"
+                
                 show_snackbar(page, f"Synced {len(local_notes)} notes!")
                 load_notes()
             else:
@@ -165,6 +176,10 @@ def main_notes_view(page: ft.Page, refresh_notes):
         sidebar.visible = show_sidebar
         page.update()
 
+    # Create refs for dynamic text updates
+    sidebar_username = ft.Ref[ft.Text]()
+    welcome_text = ft.Ref[ft.Text]()
+
     sidebar = ft.Container(
         width=280,
         height=page.height,
@@ -173,20 +188,20 @@ def main_notes_view(page: ft.Page, refresh_notes):
         content=ft.Column(
             [
                 ft.IconButton(ft.icons.ARROW_BACK, on_click=toggle_sidebar),
-                ft.Text(user_name, size=18, weight="bold", color="white"),
+                ft.Text(user_name, ref=sidebar_username, size=18, weight="bold", color="white"),
                 ft.Divider(color="white24"),
                 ft.ListTile(
-                    leading=ft.Icon(ft.icons.SYNC,color="black"),
-                    title=ft.Text("Sync Now",color="white" ),
+                    leading=ft.Icon(ft.icons.SYNC, color="black"),
+                    title=ft.Text("Sync Now", color="white"),
                     on_click=sync_notes
                 ),
                 ft.ListTile(
-                    leading=ft.Icon(ft.icons.SETTINGS,color="black"),
-                    title=ft.Text("Settings",color="white")
+                    leading=ft.Icon(ft.icons.SETTINGS, color="black"),
+                    title=ft.Text("Settings", color="white")
                 ),
                 ft.ListTile(
                     leading=ft.Icon(ft.icons.EXIT_TO_APP, color="red"),
-                    title=ft.Text("Logout",color="white"),
+                    title=ft.Text("Logout", color="white"),
                     on_click=lambda e: page.go("/logout")
                 )
             ],
@@ -210,7 +225,7 @@ def main_notes_view(page: ft.Page, refresh_notes):
                     ],
                     alignment="spaceBetween"
                 ),
-                ft.Text(f"Welcome back, {user_name}!", size=20, weight="bold"),
+                ft.Text(f"Welcome back, {user_name}!", ref=welcome_text, size=20, weight="bold"),
                 ft.Container(
                     height=100,
                     content=ft.ListView(
@@ -222,7 +237,7 @@ def main_notes_view(page: ft.Page, refresh_notes):
                                 bgcolor=BG,
                                 border_radius=15,
                                 content=ft.Column([
-                                    ft.Text("Total Notes", size=12 , color="white"),
+                                    ft.Text("Total Notes", size=12, color="white"),
                                     ft.Text(str(len(tasks.controls)), size=20, weight="bold", color="white"),
                                     ft.ProgressBar(value=0.7, width=400)
                                 ])
