@@ -5,7 +5,7 @@ from views.welcome import welcome_view
 from views.signup import signup_app
 from views.login import login_app
 from views.main_notes import main_notes_view
-from views.note_editor import note_editor
+from views.note_editor import note_editor_view
 
 def main(page: ft.Page):
     page.title = "Notique"
@@ -45,7 +45,7 @@ def main(page: ft.Page):
             if not has_token and not has_local_id:
                 page.go("/welcome")
                 return
-            page.views.append(note_editor(page, refresh_notes))
+            page.views.append( note_editor_view (page, refresh_notes))
         elif page.route == "/logout":
             
             page.client_storage.remove("auth_token")

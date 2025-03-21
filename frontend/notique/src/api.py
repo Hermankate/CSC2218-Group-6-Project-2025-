@@ -9,12 +9,11 @@ class API:
         
     def set_credentials(self, token=None, local_id=None):
         self.token = token
-        self.local_id = local_id or str(uuid.uuid4())  # Generate local ID if not provided
+        self.local_id = local_id or str(uuid.uuid4())
         
     def _headers(self):
         headers = {"Content-Type": "application/json"}
         if self.token:
-            # Changed from Bearer to Token for Django REST Framework
             headers["Authorization"] = f"Token {self.token}"
         if self.local_id and not self.token:
             headers["X-Local-ID"] = self.local_id
@@ -32,24 +31,18 @@ class API:
             return response
         except requests.exceptions.ConnectionError:
             return None
-        except Exception as e:
-            print(f"Registration error: {str(e)}")
-            return None
-        
-    def login(self, email, password):  # Changed from username to email
+
+    def login(self, email, password):
         try:
             response = requests.post(
                 f"{self.base_url}/api/login/",
-                json={"username": email, "password": password}  # Changed to email
+                json={"username": email, "password": password}
             )
             if response.status_code == 200:
                 data = response.json()
                 self.set_credentials(token=data.get('token'))
             return response
         except requests.exceptions.ConnectionError:
-            return None
-        except Exception as e:
-            print(f"Login error: {str(e)}")
             return None
             
     def get_notes(self):
@@ -58,32 +51,35 @@ class API:
                 f"{self.base_url}/api/notes/", 
                 headers=self._headers()
             )
-            if response.status_code == 401:
-                self.handle_unauthorized()
             return response
         except requests.exceptions.ConnectionError:
             return None
             
-    def create_note(self, title, content):
+    def create_note(self, data):
         try:
             return requests.post(
                 f"{self.base_url}/api/notes/",
                 headers=self._headers(),
                 json={
-                    "title": title, 
-                    "content": content,
-                    "local_id": self.local_id  # Include local ID for sync
+                    "title": data['title'], 
+                    "content": data['content'],
+                    "category": data.get('category', 'Uncategorized'),
+                    "local_id": self.local_id
                 }
             )
         except requests.exceptions.ConnectionError:
             return None
 
-    def update_note(self, note_id, title, content):
+    def update_note(self, note_id, data):
         try:
             return requests.put(
                 f"{self.base_url}/api/notes/{note_id}/",
                 headers=self._headers(),
-                json={"title": title, "content": content}
+                json={
+                    "title": data['title'],
+                    "content": data['content'],
+                    "category": data.get('category', 'Uncategorized')
+                }
             )
         except requests.exceptions.ConnectionError:
             return None
@@ -101,12 +97,17 @@ class API:
         try:
             return requests.post(
                 f"{self.base_url}/api/sync/",
-                json={"local_storage_id": local_id, "notes": notes}
+                json={
+                    "local_storage_id": local_id,
+                    "notes": [{
+                        "title": n["title"],
+                        "content": n["content"],
+                        "category": n.get("category", "Uncategorized"),
+                        "local_id": n.get("local_id")
+                    } for n in notes]
+                }
             )
         except requests.exceptions.ConnectionError:
             return None
-
-
-
 
 api = API("http://127.0.0.1:8000")
