@@ -34,6 +34,7 @@ ALLOWED_HOSTS = [
     "notique-backend.onrender.com",  # Add your Render domain
     "127.0.0.1",  # For local testing
     "localhost",
+     "hermankatende.pythonanywhere.com"
 ]
 
 # Application definition
@@ -55,14 +56,16 @@ REST_FRAMEWORK = {
 
 CSRF_TRUSTED_ORIGINS = [
     'https://notique-backend.onrender.com',
-    'http://localhost:8550'
+    'http://localhost:8550',
+     
 ]
 
 
 CORS_ALLOWED_ORIGINS = [
     "https://notique-backend.onrender.com",
     "http://localhost",
-    "http://localhost:8550"
+    "http://localhost:8550",
+    
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
