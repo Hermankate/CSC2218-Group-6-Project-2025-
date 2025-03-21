@@ -1,7 +1,7 @@
 import flet as ft
 from api import api
+from views.main_notes import main_notes_view
 from utilities import show_snackbar
-
 def signup_app(page: ft.Page):
     username_field = ft.TextField(label="Username", autofocus=True)
     email_field = ft.TextField(label="Email")
@@ -30,22 +30,25 @@ def signup_app(page: ft.Page):
                 error_text.value = "Cannot connect to server"
                 return
                 
-            print(f"Response Status: {response.status_code}")
-            print(f"Response Content: {response.text}")
-
             if response.status_code == 201:
                 data = response.json()
+                # Set credentials and storage
                 api.set_credentials(token=data['token'])
                 page.client_storage.set("auth_token", data['token'])
-                page.client_storage.set("current_user", data['user'])
-                page.data["current_user"] = data['user']
-                page.go("/")
+                page.client_storage.set("current_user", data.get('user', {}))
+                
+                # Force full refresh of the app
+                page.views.clear()
+                page.route = "/"
+                page.views.append(main_notes_view(page, []))
+                page.update()
+                
             else:
                 try:
                     error_data = response.json()
                     error_text.value = "\n".join(
                         [f"{k}: {v}" for k, v in error_data.items()]
-                    ) if isinstance(error_data, dict) else str(error_data)
+                    ) if isinstance(error_data, dict) else "Registration failed"
                 except:
                     error_text.value = f"Server error: {response.status_code}"
 

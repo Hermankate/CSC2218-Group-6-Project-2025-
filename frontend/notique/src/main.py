@@ -1,4 +1,3 @@
-
 import flet as ft
 from api import api
 from utilities import show_snackbar
@@ -6,7 +5,7 @@ from views.welcome import welcome_view
 from views.signup import signup_app
 from views.login import login_app
 from views.main_notes import main_notes_view
-from views.note_editor import  note_editor
+from views.note_editor import note_editor
 
 def main(page: ft.Page):
     page.title = "Notique"
@@ -17,13 +16,18 @@ def main(page: ft.Page):
         page.data = {}
     
     refresh_notes = []
-    state = {
-        "token": page.client_storage.get("auth_token"),
-        "local_id": page.client_storage.get("local_storage_id")
-    }
+
+    # Initialize API credentials from storage
+    auth_token = page.client_storage.get("auth_token")
+    if auth_token:
+        api.set_credentials(token=auth_token)
 
     def route_change(e):
         page.views.clear()
+        
+        # Get fresh auth state
+        has_token = page.client_storage.get("auth_token")
+        has_local_id = page.client_storage.get("local_storage_id")
         
         if page.route == "/welcome":
             page.views.append(welcome_view(page))
@@ -32,31 +36,38 @@ def main(page: ft.Page):
         elif page.route == "/login":
             page.views.append(login_app(page))
         elif page.route == "/":
-            if not state['token'] and not state['local_id']:
-                return page.go("/welcome")
+            if not has_token and not has_local_id:
+                page.go("/welcome")
+                return
+            # Force new instance of main notes view
             page.views.append(main_notes_view(page, refresh_notes))
         elif page.route.startswith("/notes"):
+            if not has_token and not has_local_id:
+                page.go("/welcome")
+                return
             page.views.append(note_editor(page, refresh_notes))
         elif page.route == "/logout":
-            page.client_storage.clear()
-            state.update({"token": None, "local_id": None})
+            
+            page.client_storage.remove("auth_token")
+            page.client_storage.remove("current_user")
+            page.client_storage.remove("local_storage_id")
             page.go("/welcome")
         
         page.update()
 
     page.on_route_change = route_change
     page.on_error = lambda e: show_snackbar(page, f"Error: {str(e)}")
+
+    # Initial navigation
+    initial_token = page.client_storage.get("auth_token")
+    initial_local_id = page.client_storage.get("local_storage_id")
     
-    if not state['token'] and not state['local_id']:
+    if not initial_token and not initial_local_id:
         page.go("/welcome")
     else:
         page.go("/")
-
 if __name__ == "__main__":
     ft.app(target=main, view=ft.AppView.FLET_APP, assets_dir="assets")
-
-
-
 
 
 

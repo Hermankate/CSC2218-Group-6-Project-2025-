@@ -1,5 +1,6 @@
 import flet as ft
 from api import api
+from views.main_notes import main_notes_view
 from utilities import show_snackbar
 
 
@@ -33,7 +34,11 @@ def login_app(page: ft.Page):
                 page.client_storage.set("auth_token", data['token'])
                 page.client_storage.set("current_user", data['user'])
                 page.data["current_user"] = data['user']
-                page.go("/")
+                page.views.clear()
+                page.route = "/"
+                page.views.append(main_notes_view(page, []))
+                page.update()
+                
             else:
                 handle_error(response)
 
