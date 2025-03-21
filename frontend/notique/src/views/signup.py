@@ -1,6 +1,6 @@
 import flet as ft
-from src.api import api
-from src.utilities import show_snackbar
+from api import api
+from utilities import show_snackbar
 
 def signup_app(page: ft.Page):
     username_field = ft.TextField(label="Username", autofocus=True)

@@ -1,6 +1,6 @@
 import flet as ft
-from src.api import api
-from src.utilities import show_snackbar
+from api import api
+from utilities import show_snackbar
 
 
 def login_app(page: ft.Page):

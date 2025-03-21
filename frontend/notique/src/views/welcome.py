@@ -1,6 +1,6 @@
 import uuid
 import flet as ft
-from src.api import api
+from api import api
 
 def welcome_view(page: ft.Page):
     def handle_skip(e):

@@ -1,6 +1,6 @@
 import flet as ft
-from src.api import api
-from src.utilities import show_snackbar
+from api import api
+from utilities import show_snackbar
 
 def main_notes_view(page: ft.Page, refresh_notes):
     BG = "#041955"
@@ -8,6 +8,44 @@ def main_notes_view(page: ft.Page, refresh_notes):
     tasks = ft.ListView(expand=True, spacing=10)
     loading = ft.ProgressBar(visible=False)
     show_sidebar = False
+    all_notes_data = []
+
+    # Search elements
+    search_field = ft.TextField(
+        hint_text="Search notes...",
+        on_change=lambda e: filter_notes(e.control.value),
+        visible=False,
+        expand=True,
+        height=40,
+        text_size=14,
+        border_color="transparent",
+        content_padding=5,
+    )
+
+    close_search_btn = ft.IconButton(
+        ft.icons.CLOSE,
+        on_click=lambda e: close_search(),
+        visible=False,
+    )
+
+    search_icon = ft.IconButton(
+        ft.icons.SEARCH,
+        on_click=lambda e: open_search(),
+    )
+
+    def open_search():
+        search_icon.visible = False
+        search_field.visible = True
+        close_search_btn.visible = True
+        page.update()
+
+    def close_search():
+        search_field.visible = False
+        close_search_btn.visible = False
+        search_icon.visible = True
+        search_field.value = ""
+        filter_notes("")
+        page.update()
 
     def build_note_card(note):
         return ft.Container(
@@ -35,6 +73,7 @@ def main_notes_view(page: ft.Page, refresh_notes):
         )
 
     def load_notes():
+        nonlocal all_notes_data
         try:
             tasks.controls.clear()
             loading.visible = True
@@ -48,19 +87,35 @@ def main_notes_view(page: ft.Page, refresh_notes):
 
             local_notes = page.client_storage.get("local_notes") or []
             all_notes = []
-            if api.token:  # Logged-in users
+            if api.token:
                 all_notes = server_notes
-            else:  # Guest users
+            else:
                 all_notes = [n for n in local_notes if not n.get('synced')]
 
-            for note in all_notes:
-                tasks.controls.append(build_note_card(note))
+            all_notes_data = all_notes.copy()
+            filter_notes(search_field.value)
 
         except Exception as e:
             show_snackbar(page, f"Error loading notes: {str(e)}")
         finally:
             loading.visible = False
             page.update()
+
+    def filter_notes(query):
+        query = query.strip().lower()
+        tasks.controls.clear()
+        
+        filtered_notes = all_notes_data
+        if query:
+            filtered_notes = [
+                note for note in all_notes_data
+                if query in note["title"].lower()
+            ]
+        
+        for note in filtered_notes:
+            tasks.controls.append(build_note_card(note))
+        
+        page.update()
 
     def delete_note(note_id):
         try:
@@ -147,9 +202,11 @@ def main_notes_view(page: ft.Page, refresh_notes):
                     [
                         ft.IconButton(ft.icons.MENU, on_click=toggle_sidebar),
                         ft.Row([
-                            ft.IconButton(ft.icons.SEARCH),
+                            search_icon,
+                            search_field,
+                            close_search_btn,
                             ft.IconButton(ft.icons.NOTIFICATIONS_NONE)
-                        ])
+                        ], spacing=5)
                     ],
                     alignment="spaceBetween"
                 ),
@@ -174,28 +231,25 @@ def main_notes_view(page: ft.Page, refresh_notes):
                     )
                 ),
                 ft.Text("Your Notes", size=16),
-                        
-                                ft.Column([
-                                    ft.ListView(
-                                        controls=[ft.Container(expand=True, content=tasks),]),
-                                     ],    
-                                    expand=True,
-                                    spacing=20
-                                            ),
-                                            
+                ft.Column([
+                    ft.ListView(
+                        controls=[ft.Container(expand=True, content=tasks),]),
+                ],    
+                    expand=True,
+                    spacing=20
+                ),
             ]
-
         ) 
-          
     )
-    fab =ft.FloatingActionButton(
-                icon=ft.icons.ADD,
-                on_click=lambda e: page.go("/notes"),
-                bgcolor=ft.colors.PINK_ACCENT,
-                right=20,  # Position from right edge
-    bottom=20  # Position from bottom edge
-                                                                        )
+    
+    fab = ft.FloatingActionButton(
+        icon=ft.icons.ADD,
+        on_click=lambda e: page.go("/notes"),
+        bgcolor=ft.colors.PINK_ACCENT,
+        right=20,
+        bottom=20
+    )
     
     load_notes()
-    refresh_notes.append(load_notes)  # Critical fix for refresh propagation
-    return ft.View("/", [ft.Stack([main_content,fab, sidebar]), loading])
+    refresh_notes.append(load_notes)
+    return ft.View("/", [ft.Stack([main_content, fab, sidebar]), loading])

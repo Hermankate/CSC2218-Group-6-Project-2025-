@@ -1,8 +1,8 @@
 from datetime import datetime
 import uuid
 import flet as ft
-from src.api import api
-from src.utilities import show_snackbar, handle_offline_save
+from api import api
+from utilities import show_snackbar, handle_offline_save
 
 def note_editor(page: ft.Page, refresh_notes):
     title_input = ft.TextField(label="Title", autofocus=True)
