@@ -6,7 +6,16 @@ class API:
         self.base_url = base_url
         self.token = None
         self.local_id = None
-        
+    
+    def get_note(self, note_id):
+        try:
+            return requests.get(
+                f"{self.base_url}/api/notes/{note_id}/",
+                headers=self._headers()
+            )
+        except requests.exceptions.ConnectionError:
+            return None
+
     def set_credentials(self, token=None, local_id=None):
         self.token = token
         self.local_id = local_id or str(uuid.uuid4())
@@ -111,3 +120,5 @@ class API:
             return None
 
 api = API("http://127.0.0.1:8000")
+
+# api=API("http://hermankatende.pythonanywhere.com")
