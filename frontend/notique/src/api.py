@@ -1,18 +1,14 @@
 import uuid
-#import requests
-import subprocess
 import sys
-try:
-    import requests
-except ModuleNotFoundError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "requests"])
-    import requests
+import subprocess
+import requests
+
 class API:
     def __init__(self, base_url):
         self.base_url = base_url
         self.token = None
         self.local_id = None
-    
+
     def get_note(self, note_id):
         try:
             return requests.get(
@@ -33,46 +29,57 @@ class API:
         if self.local_id and not self.token:
             headers["X-Local-ID"] = self.local_id
         return headers
-        
+
+    def _handle_response(self, response):
+        if response.status_code not in (200, 201):
+            print(f"API Error: {response.status_code} - {response.text}")
+        return response
+
     def register(self, username, email, password):
         try:
             response = requests.post(
                 f"{self.base_url}/api/register/",
-                json={"email": email, "password": password}
+                json={
+                    "username": username,  # Include username (optional)
+                    "email": email,
+                    "password": password
+                }
             )
             if response.status_code == 201:
                 data = response.json()
                 self.set_credentials(token=data.get('token'))
-            return response
-        except requests.exceptions.ConnectionError:
+            return self._handle_response(response)
+        except requests.exceptions.ConnectionError as e:
+            print(f"Connection error: {str(e)}")
             return None
-
     def login(self, email, password):
         try:
             response = requests.post(
                 f"{self.base_url}/api/login/",
-                json={"username": email, "password": password}
+                json={"email": email, "password": password}
             )
             if response.status_code == 200:
                 data = response.json()
                 self.set_credentials(token=data.get('token'))
-            return response
-        except requests.exceptions.ConnectionError:
+            return self._handle_response(response)
+        except requests.exceptions.ConnectionError as e:
+            print(f"Connection error: {str(e)}")
             return None
-            
+
     def get_notes(self):
         try:
             response = requests.get(
                 f"{self.base_url}/api/notes/", 
                 headers=self._headers()
             )
-            return response
-        except requests.exceptions.ConnectionError:
+            return self._handle_response(response)
+        except requests.exceptions.ConnectionError as e:
+            print(f"Connection error: {str(e)}")
             return None
-            
+
     def create_note(self, data):
         try:
-            return requests.post(
+            response = requests.post(
                 f"{self.base_url}/api/notes/",
                 headers=self._headers(),
                 json={
@@ -82,12 +89,14 @@ class API:
                     "local_id": self.local_id
                 }
             )
-        except requests.exceptions.ConnectionError:
+            return self._handle_response(response)
+        except requests.exceptions.ConnectionError as e:
+            print(f"Connection error: {str(e)}")
             return None
 
     def update_note(self, note_id, data):
         try:
-            return requests.put(
+            response = requests.put(
                 f"{self.base_url}/api/notes/{note_id}/",
                 headers=self._headers(),
                 json={
@@ -96,21 +105,25 @@ class API:
                     "category": data.get('category', 'Uncategorized')
                 }
             )
-        except requests.exceptions.ConnectionError:
+            return self._handle_response(response)
+        except requests.exceptions.ConnectionError as e:
+            print(f"Connection error: {str(e)}")
             return None
 
     def delete_note(self, note_id):
         try:
-            return requests.delete(
+            response = requests.delete(
                 f"{self.base_url}/api/notes/{note_id}/",
                 headers=self._headers()
             )
-        except requests.exceptions.ConnectionError:
+            return self._handle_response(response)
+        except requests.exceptions.ConnectionError as e:
+            print(f"Connection error: {str(e)}")
             return None
 
     def sync_notes(self, local_id, notes):
         try:
-            return requests.post(
+            response = requests.post(
                 f"{self.base_url}/api/sync/",
                 json={
                     "local_storage_id": local_id,
@@ -122,9 +135,13 @@ class API:
                     } for n in notes]
                 }
             )
-        except requests.exceptions.ConnectionError:
+            return self._handle_response(response)
+        except requests.exceptions.ConnectionError as e:
+            print(f"Connection error: {str(e)}")
             return None
 
+# Usage
+api = API("http://hermankatende.pythonanywhere.com")
 #api = API("http://127.0.0.1:8000")
 
-api=API("http://hermankatende.pythonanywhere.com")
+# api=API("http://hermankatende.pythonanywhere.com")

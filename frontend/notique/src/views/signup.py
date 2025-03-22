@@ -9,14 +9,16 @@ def signup_app(page: ft.Page):
     error_text = ft.Text(color="red")
     loading = ft.ProgressBar(visible=False)
 
+
     def handle_submit(e):
         error_text.value = ""
-        username = username_field.value.strip()
+        username = username_field.value.strip()  # Optional
         email = email_field.value.strip()
         password = password_field.value
 
-        if not all([username, email, password]):
-            error_text.value = "All fields are required"
+        # Only require email and password
+        if not all([email, password]):
+            error_text.value = "Email and password are required"
             page.update()
             return
 
@@ -24,6 +26,7 @@ def signup_app(page: ft.Page):
             loading.visible = True
             page.update()
             
+            # Pass username (even if empty)
             response = api.register(username, email, password)
             
             if response is None:
