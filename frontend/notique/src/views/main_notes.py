@@ -303,9 +303,9 @@ def main_notes_view(page: ft.Page, refresh_notes):
                 ),
                 ft.Text(f"Welcome back, {user_name}!", ref=welcome_text, 
                        size=20, weight="bold"),
-                ft.Text("CATEGORIES", size=12, color="white54"),
+                ft.Text("CATEGORIES", size=12, color=BG),
                 ft.Container(height=100, content=categories_card),
-                ft.Text("YOUR NOTES", size=12, color="white54"),
+                ft.Text("YOUR NOTES", size=12, color=BG),
                 ft.Container(
                     expand=True,
                     content=ft.Column([
