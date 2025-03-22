@@ -141,7 +141,7 @@ class API:
             return None
 
 # Usage
-#api = API("http://hermankatende.pythonanywhere.com")
+api = API("http://hermankatende.pythonanywhere.com")
 #api = API("http://127.0.0.1:8000")
 
-api=API("https://group6webapi.pythonanywhere.com")
+# api=API("https://group6webapi.pythonanywhere.com")
