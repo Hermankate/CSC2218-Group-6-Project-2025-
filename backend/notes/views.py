@@ -178,7 +178,7 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view
-from .models import Note, User
+from .models import Note
 from .serializers import NoteSerializer, UserSerializer, TemporaryUserSerializer
 import uuid
 from rest_framework import status
