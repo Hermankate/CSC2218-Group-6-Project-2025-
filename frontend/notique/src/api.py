@@ -32,7 +32,7 @@ class API:
         try:
             response = requests.post(
                 f"{self.base_url}/api/register/",
-                json={"username": username, "email": email, "password": password}
+                json={"email": email, "password": password}
             )
             if response.status_code == 201:
                 data = response.json()

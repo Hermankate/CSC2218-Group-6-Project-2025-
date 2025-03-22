@@ -202,17 +202,17 @@ User = get_user_model()
 @permission_classes([AllowAny])
 def register(request):
     try:
-        username = request.data.get('username')
+        #username = request.data.get('username')
         email = request.data.get('email')
         password = request.data.get('password')
 
-        if not all([username, email, password]):
+        if not all([email, password]):
             return Response({'error': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.create_user(
-            username=username,
             email=email,
-            password=password
+            password=password,
+            username=request.data.get('username', '')
         )
 
         token, _ = Token.objects.get_or_create(user=user)
