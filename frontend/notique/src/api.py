@@ -119,6 +119,6 @@ class API:
         except requests.exceptions.ConnectionError:
             return None
 
-api = API("http://127.0.0.1:8000")
+#api = API("http://127.0.0.1:8000")
 
-# api=API("http://hermankatende.pythonanywhere.com")
+api=API("http://hermankatende.pythonanywhere.com")
