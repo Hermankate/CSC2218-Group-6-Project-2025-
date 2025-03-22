@@ -203,18 +203,17 @@ User = get_user_model()
 @permission_classes([AllowAny])
 def register(request):
     try:
+        username = request.data.get('username', '')  # Optional
         email = request.data.get('email')
         password = request.data.get('password')
-        username = request.data.get('username', '')  # Optional username
 
         if not all([email, password]):
-            return Response({'error': 'Email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Email and password are required'}, status=400)
 
-        # Create user with email/password (username is optional)
         user = User.objects.create_user(
             email=email,
             password=password,
-            username=username  # Pass username (can be empty)
+            username=username  # Optional field
         )
 
         token, _ = Token.objects.get_or_create(user=user)
@@ -225,12 +224,9 @@ def register(request):
                 'email': user.email,
                 'username': user.username
             }
-        }, status=status.HTTP_201_CREATED)
-
-    except IntegrityError:
-        return Response({'error': 'Email already exists'}, status=status.HTTP_400_BAD_REQUEST)
+        }, status=201)
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': str(e)}, status=400)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def sync_notes(request):
