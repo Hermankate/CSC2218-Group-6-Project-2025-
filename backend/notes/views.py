@@ -173,6 +173,8 @@
 #                 'username': user.username
 #             }
 #         })
+
+from django.db import IntegrityError
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
@@ -197,22 +199,22 @@ from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import serializers
 
 User = get_user_model()
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
     try:
-        #username = request.data.get('username')
         email = request.data.get('email')
         password = request.data.get('password')
+        username = request.data.get('username', '')  # Optional username
 
         if not all([email, password]):
-            return Response({'error': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Create user with email/password (username is optional)
         user = User.objects.create_user(
             email=email,
             password=password,
-            username=request.data.get('username', '')
+            username=username  # Pass username (can be empty)
         )
 
         token, _ = Token.objects.get_or_create(user=user)
@@ -220,14 +222,15 @@ def register(request):
             'token': token.key,
             'user': {
                 'id': user.id,
-                'username': user.username,
-                'email': user.email
+                'email': user.email,
+                'username': user.username
             }
         }, status=status.HTTP_201_CREATED)
 
+    except IntegrityError:
+        return Response({'error': 'Email already exists'}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def sync_notes(request):
