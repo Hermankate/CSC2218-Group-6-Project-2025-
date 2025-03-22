@@ -1,6 +1,12 @@
 import uuid
-import requests
-
+#import requests
+import subprocess
+import sys
+try:
+    import requests
+except ModuleNotFoundError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "requests"])
+    import requests
 class API:
     def __init__(self, base_url):
         self.base_url = base_url
