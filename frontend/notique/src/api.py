@@ -54,7 +54,7 @@ class API:
         try:
             response = requests.post(
                 f"{self.base_url}/api/login/",
-                json={"email": email, "password": password}
+                json={"username": email, "password": password}  # Changed 'email' to 'username'
             )
             if response.status_code == 200:
                 data = response.json()
@@ -63,7 +63,6 @@ class API:
         except requests.exceptions.ConnectionError as e:
             print(f"Connection error: {str(e)}")
             return None
-
     def get_notes(self):
         try:
             response = requests.get(
