@@ -1,10 +1,13 @@
 
 from django.db import IntegrityError
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view
+
+from notique import settings
 from .models import Note
 from .serializers import NoteSerializer, UserSerializer, TemporaryUserSerializer
 import uuid
@@ -22,6 +25,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import serializers
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+
 
 User = get_user_model()
 @api_view(['POST'])
@@ -143,3 +149,15 @@ class CustomAuthToken(ObtainAuthToken):
                 'username': user.username
             }
         })
+
+# In your Django views.py
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def share_note(request, note_id):
+    note = get_object_or_404(Note, id=note_id, user=request.user)
+    return Response({
+        "share_url": f"{settings.BASE_URL}/shared/{note_id}/",
+        "title": note.title,
+        "content": note.content
+    })
+
