@@ -161,3 +161,9 @@ def share_note(request, note_id):
         "content": note.content
     })
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def shared_note(request, note_id):
+    note = get_object_or_404(Note, id=note_id)
+    serializer = NoteSerializer(note)
+    return Response(serializer.data)

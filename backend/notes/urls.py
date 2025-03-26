@@ -16,6 +16,11 @@ urlpatterns = [
         share_note,
         name='share-note'
     ),
+    path(
+    'shared/<int:note_id>/',
+    share_note,
+    name='shared-note'
+    ),
     path('notes/', NoteListCreateView.as_view(), name='note-list-create'),
     path('notes/<int:pk>/', NoteRetrieveUpdateDestroyView.as_view(), name='note-retrieve-update-destroy'),
 ]
