@@ -12,7 +12,7 @@ from rest_framework.permissions import AllowAny
 from django.template.loader import render_to_string
 from django.contrib.sites.shortcuts import get_current_site
 from notique import settings
-from .models import Note
+from .models import Note, Share
 from .serializers import NoteSerializer, UserSerializer, TemporaryUserSerializer
 import uuid
 from rest_framework import status
@@ -172,41 +172,34 @@ class CustomAuthToken(ObtainAuthToken):
 #     serializer = NoteSerializer(note)
 #     return Response(serializer.data)
 
-
-# Modified share_note view
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def share_note(request, note_id):
-    # Get the note and validate ownership
     note = get_object_or_404(Note, id=note_id, user=request.user)
+    share, created = Share.objects.get_or_create(note=note)
     
-    # Generate share URL
     current_site = get_current_site(request)
-    share_url = f"https://{current_site.domain}/shared/{note_id}/"
-    
-    # Create a share entry or update sharing status
-    note.is_shared = True
-    note.save()
+    share_url = f"https://{current_site.domain}/shared/{share.token}/"
     
     return Response({
         "share_url": share_url,
-        "message": "Note shared successfully"
+        "token": str(share.token),
+        "expires": share.expires_at
     }, status=status.HTTP_200_OK)
 
-# New shared_note view for public access
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def shared_note(request, note_id):
-    note = get_object_or_404(Note, id=note_id, is_shared=True)
+def shared_note(request, token):
+    share = get_object_or_404(Share, token=token)
+    share.accessed_count += 1
+    share.save()
     
-    # Render HTML template for social media compatibility
-    html_content = render_to_string('shared_note.html', {
-        'note': note,
-        'share_url': request.build_absolute_uri()
+    return Response({
+        "title": share.note.title,
+        "content": share.note.content,
+        "shared_by": share.note.user.email,
+        "access_count": share.accessed_count
     })
-    
-    return HttpResponse(html_content)
-
 # Add this HTML template rendering function
 def render_shared_note_html(note, share_url):
     return f"""

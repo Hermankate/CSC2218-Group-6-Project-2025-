@@ -36,5 +36,5 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('notes.urls')),
-    path('shared/', include('notes.urls')),  # This includes your notes app URLs
+      # This includes your notes app URLs
 ]

@@ -1,6 +1,6 @@
 from django.urls import path
 from django.urls import path
-from .views import register, share_note, sync_notes, NoteListCreateView, NoteRetrieveUpdateDestroyView
+from .views import register, share_note, shared_note, sync_notes, NoteListCreateView, NoteRetrieveUpdateDestroyView
 
 from django.urls import path
 from .views import register, sync_notes, NoteListCreateView, NoteRetrieveUpdateDestroyView
@@ -17,9 +17,9 @@ urlpatterns = [
         name='share-note'
     ),
     path(
-    'shared/<int:note_id>/',
-    share_note,
-    name='shared-note'
+        'shared/<uuid:token>/',  # Changed from note_id to token
+        shared_note,
+        name='shared-note'
     ),
     path('notes/', NoteListCreateView.as_view(), name='note-list-create'),
     path('notes/<int:pk>/', NoteRetrieveUpdateDestroyView.as_view(), name='note-retrieve-update-destroy'),
