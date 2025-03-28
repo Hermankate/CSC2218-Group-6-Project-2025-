@@ -489,14 +489,37 @@ def main_notes_view(page: ft.Page, refresh_notes):
         filter_notes()
         update_categories()
 
+    # def handle_share(note_id):
+    #     try:
+    #         response = api.get_share_url(note_id)
+    #         if response and response.ok:
+    #             share_data = response.json()
+    #             page.launch_url(share_data['share_url'])
+    #         else:
+    #             show_snackbar(page, "Failed to generate share link")
+    #     except Exception as e:
+    #         show_snackbar(page, f"Sharing failed: {str(e)}")
+
     def handle_share(note_id):
         try:
             response = api.get_share_url(note_id)
             if response and response.ok:
                 share_data = response.json()
-                page.launch_url(share_data['share_url'])
+                # Show dialog with share URL
+                page.dialog = ft.AlertDialog(
+                    title=ft.Text("Share Link"),
+                    content=ft.Column([
+                        ft.Text(share_data['share_url'], selectable=True),
+                        ft.ElevatedButton(
+                            "Copy Link",
+                            on_click=lambda e: page.set_clipboard(share_data['share_url']))
+                    ]),
+                    on_dismiss=lambda e: page.update()
+                )
+                page.dialog.open = True
             else:
                 show_snackbar(page, "Failed to generate share link")
+            page.update()
         except Exception as e:
             show_snackbar(page, f"Sharing failed: {str(e)}")
 
