@@ -131,7 +131,6 @@ class API:
         except requests.exceptions.ConnectionError as e:
             print(f"Connection error: {str(e)}")
             return None
-
     def sync_notes(self, local_id, notes):
         try:
             response = requests.post(
@@ -152,6 +151,7 @@ class API:
             return None
 
 api = API("http://hermankatende.pythonanywhere.com")
+#api = API("http://127.0.0.1:8000")
 
 
 # import uuid
