@@ -1,12 +1,16 @@
 
 from django.db import IntegrityError
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view
-
+from django.http import JsonResponse
+from rest_framework.permissions import AllowAny
+from django.template.loader import render_to_string
+from django.contrib.sites.shortcuts import get_current_site
 from notique import settings
 from .models import Note
 from .serializers import NoteSerializer, UserSerializer, TemporaryUserSerializer
@@ -150,20 +154,76 @@ class CustomAuthToken(ObtainAuthToken):
             }
         })
 
-# In your Django views.py
+# # In your Django views.py
+# @api_view(['POST'])
+# @permission_classes([permissions.IsAuthenticated])
+# def share_note(request, note_id):
+#     note = get_object_or_404(Note, id=note_id, user=request.user)
+#     return Response({
+#         "share_url": f"{settings.BASE_URL}/shared/{note_id}/",
+#         "title": note.title,
+#         "content": note.content
+#     })
+
+# @api_view(['GET'])
+# @permission_classes([AllowAny])
+# def shared_note(request, note_id):
+#     note = get_object_or_404(Note, id=note_id)
+#     serializer = NoteSerializer(note)
+#     return Response(serializer.data)
+
+
+# Modified share_note view
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def share_note(request, note_id):
+    # Get the note and validate ownership
     note = get_object_or_404(Note, id=note_id, user=request.user)
+    
+    # Generate share URL
+    current_site = get_current_site(request)
+    share_url = f"https://{current_site.domain}/shared/{note_id}/"
+    
+    # Create a share entry or update sharing status
+    note.is_shared = True
+    note.save()
+    
     return Response({
-        "share_url": f"{settings.BASE_URL}/shared/{note_id}/",
-        "title": note.title,
-        "content": note.content
-    })
+        "share_url": share_url,
+        "message": "Note shared successfully"
+    }, status=status.HTTP_200_OK)
 
+# New shared_note view for public access
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def shared_note(request, note_id):
-    note = get_object_or_404(Note, id=note_id)
-    serializer = NoteSerializer(note)
-    return Response(serializer.data)
+    note = get_object_or_404(Note, id=note_id, is_shared=True)
+    
+    # Render HTML template for social media compatibility
+    html_content = render_to_string('shared_note.html', {
+        'note': note,
+        'share_url': request.build_absolute_uri()
+    })
+    
+    return HttpResponse(html_content)
+
+# Add this HTML template rendering function
+def render_shared_note_html(note, share_url):
+    return f"""
+    <html>
+        <head>
+            <title>{note.title}</title>
+            <meta property="og:title" content="{note.title}">
+            <meta property="og:description" content="{note.content[:200]}">
+            <meta property="og:type" content="website">
+            <meta property="og:url" content="{share_url}">
+        </head>
+        <body>
+            <h1>{note.title}</h1>
+            <p>{note.content}</p>
+            <div class="share-buttons">
+                <!-- Add social media sharing buttons here -->
+            </div>
+        </body>
+    </html>
+    """

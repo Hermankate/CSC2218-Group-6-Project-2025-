@@ -160,7 +160,9 @@ WSGI_APPLICATION = 'notique.wsgi.application'
 # Load environment variables from .env
 load_dotenv()
 
-DATABASES = {
+if os.getenv('ENV') == 'production':
+    # Use MySQL in production
+    DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.getenv('DB_NAME'),
@@ -171,7 +173,17 @@ DATABASES = {
             'init_command': "SET sql_mode='STRICT_ALL_TABLES'",
         },
     }
-}
+} # Your MySQL config
+else:
+    # Use SQLite locally
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

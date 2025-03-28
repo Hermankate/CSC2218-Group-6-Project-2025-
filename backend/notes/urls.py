@@ -12,7 +12,7 @@ urlpatterns = [
     path('sync/', sync_notes, name='sync_notes'),
     #path('api/notes/<int:note_id>/share/', views.share_note),
     path(
-        'api/notes/<int:note_id>/share/',
+        'notes/<int:note_id>/share/',
         share_note,
         name='share-note'
     ),
