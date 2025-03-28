@@ -39,7 +39,7 @@ class API:
         try:
             response = requests.post(
                 f"{self.base_url}/api/notes/{note_id}/share/",
-                headers=self._headers()
+                headers=self._headers()  # Ensure this includes the token
             )
             return self._handle_response(response)
         except requests.exceptions.ConnectionError:
@@ -63,6 +63,19 @@ class API:
             print(f"Connection error: {str(e)}")
             return None
 
+    # def login(self, email, password):
+    #     try:
+    #         response = requests.post(
+    #             f"{self.base_url}/api/login/",
+    #             json={"username": email, "password": password}
+    #         )
+    #         if response.status_code == 200:
+    #             data = response.json()
+    #             self.set_credentials(token=data.get('token'))
+    #         return self._handle_response(response)
+    #     except requests.exceptions.ConnectionError as e:
+    #         print(f"Connection error: {str(e)}")
+    #         return None
     def login(self, email, password):
         try:
             response = requests.post(
@@ -71,11 +84,12 @@ class API:
             )
             if response.status_code == 200:
                 data = response.json()
-                self.set_credentials(token=data.get('token'))
+                self.set_credentials(token=data['token'])  # Should store token
+                print(f"Login successful! Token: {data['token']}")  # Debug log
             return self._handle_response(response)
-        except requests.exceptions.ConnectionError as e:
-            print(f"Connection error: {str(e)}")
-            return None
+        except Exception as e:
+            print(f"Login error: {str(e)}")
+            return None    
 
     def get_notes(self):
         try:
