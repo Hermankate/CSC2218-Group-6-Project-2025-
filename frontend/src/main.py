@@ -1,3 +1,4 @@
+import requests
 import flet as ft
 from api import api
 from utilities import show_snackbar

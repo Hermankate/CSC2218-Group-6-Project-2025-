@@ -1,5 +1,3 @@
-
-
 import uuid
 import requests
 
@@ -39,7 +37,7 @@ class API:
         try:
             response = requests.post(
                 f"{self.base_url}/api/notes/{note_id}/share/",
-                headers=self._headers()  # Ensure this includes the token
+                headers=self._headers()
             )
             return self._handle_response(response)
         except requests.exceptions.ConnectionError:
@@ -63,19 +61,6 @@ class API:
             print(f"Connection error: {str(e)}")
             return None
 
-    # def login(self, email, password):
-    #     try:
-    #         response = requests.post(
-    #             f"{self.base_url}/api/login/",
-    #             json={"username": email, "password": password}
-    #         )
-    #         if response.status_code == 200:
-    #             data = response.json()
-    #             self.set_credentials(token=data.get('token'))
-    #         return self._handle_response(response)
-    #     except requests.exceptions.ConnectionError as e:
-    #         print(f"Connection error: {str(e)}")
-    #         return None
     def login(self, email, password):
         try:
             response = requests.post(
@@ -84,8 +69,8 @@ class API:
             )
             if response.status_code == 200:
                 data = response.json()
-                self.set_credentials(token=data['token'])  # Should store token
-                print(f"Login successful! Token: {data['token']}")  # Debug log
+                self.set_credentials(token=data['token'])
+                print(f"Login successful! Token: {data['token']}")
             return self._handle_response(response)
         except Exception as e:
             print(f"Login error: {str(e)}")
@@ -111,7 +96,8 @@ class API:
                     "title": data['title'], 
                     "content": data['content'],
                     "category": data.get('category', 'Uncategorized'),
-                    "local_id": self.local_id
+                    "local_id": self.local_id,
+                    "tagged_emails": data.get('tagged_emails', [])
                 }
             )
             return self._handle_response(response)
@@ -127,7 +113,8 @@ class API:
                 json={
                     "title": data['title'],
                     "content": data['content'],
-                    "category": data.get('category', 'Uncategorized')
+                    "category": data.get('category', 'Uncategorized'),
+                    "tagged_emails": data.get('tagged_emails', [])
                 }
             )
             return self._handle_response(response)
@@ -145,6 +132,7 @@ class API:
         except requests.exceptions.ConnectionError as e:
             print(f"Connection error: {str(e)}")
             return None
+
     def sync_notes(self, local_id, notes):
         try:
             response = requests.post(
@@ -155,7 +143,8 @@ class API:
                         "title": n["title"],
                         "content": n["content"],
                         "category": n.get("category", "Uncategorized"),
-                        "local_id": n.get("local_id")
+                        "local_id": n.get("local_id"),
+                        "tagged_emails": n.get("tagged_emails", [])
                     } for n in notes]
                 }
             )
