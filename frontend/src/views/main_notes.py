@@ -413,59 +413,7 @@ def main_notes_view(page: ft.Page, refresh_notes):
             ),
             loading
         ]
-    )
-# # #     #                 ),
-# # #     #                 delete_btn
-# # #     #             ], alignment="spaceBetween"),
-# # #     #             ft.Text(
-# # #     #                 note.get("content", "")[:50] + "...", 
-# # #     #                 size=12, 
-# # #     #                 color="white54"
-# # #     #             )
-# # #     #         ]),
-# # #     #         on_click=lambda e, nid=note.get('id', note.get('local_id')), cb=checkbox: (
-# # #     #             page.go(f"/notes?note_id={nid}") if not cb.value else None
-# # #     #         )
-# # #     #     )
-# # #     def build_note_card(note):
-# # #         delete_btn = ft.IconButton(
-# # #             icon=ft.icons.DELETE,
-# # #             icon_color="red",
-# # #             visible=False,
-# # #             on_click=lambda e, nid=note.get('id', note.get('local_id')): delete_note(nid)
-# # #         )
-
-# # #         # Add share button
-# # #         share_btn = ft.IconButton(
-# # #             icon=ft.icons.SHARE,
-# # #             icon_color="white",
-# # #             visible=False,
-# # #             on_click=lambda e, nid=note.get('id', note.get('local_id')): share_note(nid)
-# # #         )
-
-# # #         checkbox = ft.Checkbox(
-# # #             label=note["title"],
-# # #             label_style=ft.TextStyle(color="white"),
-# # #             value=False,
-# # #             check_color=ft.colors.WHITE,
-# # #             fill_color=PINK,
-# # #             on_change=lambda e: [
-# # #                 setattr(delete_btn, "visible", e.control.value),
-# # #                 setattr(share_btn, "visible", e.control.value),  # Control share button visibility
-# # #                 page.update()
-# # #             ]
-# # #         )
-
-# # #         return ft.Container(
-# # #             height=80,
-# # #             bgcolor=BG,
-# # #             border_radius=20,
-# # #             padding=15,
-# # #             content=ft.Column([
-# # #                 ft.Row([
-# # #                     checkbox,
-# # #                     ft.Container(
-# # #                         bgcolor=PINK,
+    )# # #                         bgcolor=PINK,
 # # #                         border_radius=10,
 # # #                         padding=ft.padding.symmetric(5, 10),
 # # #                         content=ft.Text(
