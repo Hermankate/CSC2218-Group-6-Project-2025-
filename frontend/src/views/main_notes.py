@@ -414,23 +414,6 @@ def main_notes_view(page: ft.Page, refresh_notes):
             loading
         ]
     )
-# # #     search_field = ft.TextField(
-# # #         hint_text="Search notes...",
-# # #         on_change=lambda e: filter_notes(),
-# # #         visible=False,
-# # #         expand=True,
-# # #         height=40,
-# # #         text_size=14,
-# # #         border_color="transparent",
-# # #         content_padding=5,
-# # #     )
-
-# # #     close_search_btn = ft.IconButton(
-# # #         ft.icons.CLOSE,
-# # #         on_click=lambda e: close_search(),
-# # #         visible=False,
-# # #     )
-
 # # #     search_icon = ft.IconButton(
 # # #         ft.icons.SEARCH,
 # # #         on_click=lambda e: open_search(),
