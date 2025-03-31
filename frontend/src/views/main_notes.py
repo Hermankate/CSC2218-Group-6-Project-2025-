@@ -414,36 +414,6 @@ def main_notes_view(page: ft.Page, refresh_notes):
             loading
         ]
     )
-
-# # #     #     checkbox = ft.Checkbox(
-# # #     #         label=note["title"],
-# # #     #         label_style=ft.TextStyle(color="white"),
-# # #     #         value=False,
-# # #     #         check_color=ft.colors.WHITE,
-# # #     #         fill_color=PINK,
-# # #     #         on_change=lambda e: [
-# # #     #             setattr(delete_btn, "visible", e.control.value),
-# # #     #             page.update()
-# # #     #         ]
-# # #     #     )
-
-# # #     #     return ft.Container(
-# # #     #         height=80,
-# # #     #         bgcolor=BG,
-# # #     #         border_radius=20,
-# # #     #         padding=15,
-# # #     #         content=ft.Column([
-# # #     #             ft.Row([
-# # #     #                 checkbox,
-# # #     #                 ft.Container(
-# # #     #                     bgcolor=PINK,
-# # #     #                     border_radius=10,
-# # #     #                     padding=ft.padding.symmetric(5, 10),
-# # #     #                     content=ft.Text(
-# # #     #                         note.get("category", "Uncategorized"),
-# # #     #                         size=12,
-# # #     #                         color="white"
-# # #     #                     )
 # # #     #                 ),
 # # #     #                 delete_btn
 # # #     #             ], alignment="spaceBetween"),
