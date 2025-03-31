@@ -414,43 +414,6 @@ def main_notes_view(page: ft.Page, refresh_notes):
             loading
         ]
     )
-# # #     search_icon = ft.IconButton(
-# # #         ft.icons.SEARCH,
-# # #         on_click=lambda e: open_search(),
-# # #     )
-
-# # #     # Category Cards
-# # #     categories_card = ft.ListView(
-# # #         horizontal=True,
-# # #         spacing=10,
-# # #         height=100,
-# # #     )
-
-# # #     def update_categories():
-# # #         categories_card.controls.clear()
-# # #         for cat in categories:
-# # #             count = len([n for n in all_notes_data if n.get("category") == cat or (cat == "All" and n)])
-# # #             categories_card.controls.append(
-# # #                 ft.Container(
-# # #                     width=140,
-# # #                     height=90,
-# # #                     bgcolor=BG,
-# # #                     border_radius=15,
-# # #                     padding=12,
-# # #                     on_click=lambda e, c=cat: select_category(c),
-# # #                     content=ft.Column([
-# # #                         ft.Text(f"{count} Notes", size=12, color="white"),
-# # #                         ft.Text(cat, size=14, color="white"),
-# # #                         ft.Container(
-# # #                             height=4,
-# # #                             bgcolor="white24",
-# # #                             border_radius=2,
-# # #                             content=ft.Container(
-# # #                                 bgcolor=PINK, 
-# # #                                 width=60 if cat == selected_category.current.value else 0
-# # #                             )
-# # #                         )
-# # #                     ])
 # # #                 )
 # # #             )
 # # #         page.update()
