@@ -190,40 +190,6 @@ def note_editor_view(page: ft.Page, refresh_notes):
         ]
     )
 
-#                             **note_data
-#                         }
-#                 else:
-#                     # Create new local note
-#                     local_notes.append({
-#                         **note_data,
-#                         "local_id": len(local_notes) + 1,
-#                         "synced": False
-#                     })
-#                 page.client_storage.set("local_notes", local_notes)
-#                 show_snackbar(page, "Note saved locally!")
-            
-#             for refresh in refresh_notes:
-#                 refresh()
-#             page.go("/")
-
-#         except Exception as e:
-#             error_text.value = f"Error: {str(e)}"
-#         finally:
-#             loading.visible = False
-#             page.update()
-
-#     def cancel_edit(e):
-#         page.go("/")
-
-#     return ft.View(
-#         "/notes",
-#         [
-#             ft.AppBar(
-#                 title=ft.Text("Edit Note" if note_id else "New Note"),
-#                 leading=ft.IconButton(
-#                     icon=ft.icons.ARROW_BACK,
-#                     on_click=cancel_edit
-#                 )
 #             ),
 #             ft.Column(
 #                 [
