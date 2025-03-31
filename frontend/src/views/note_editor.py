@@ -190,24 +190,3 @@ def note_editor_view(page: ft.Page, refresh_notes):
         ]
     )
 
-#             ),
-#             ft.Column(
-#                 [
-#                     title_field,
-#                     ft.Row([
-#                         ft.Text("Category:", color="white"),
-#                         category_dropdown
-#                     ], alignment="start"),
-#                     content_field,
-#                     ft.Row([
-#                         ft.ElevatedButton("Save", on_click=save_note),
-#                         ft.TextButton("Cancel", on_click=cancel_edit)
-#                     ], spacing=20)
-#                 ],
-#                 expand=True,
-#                 spacing=20
-#             ),
-#             loading,
-#             error_text
-#         ]
-#     )
