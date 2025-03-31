@@ -220,6 +220,7 @@
 #         </body>
 #     </html>
 #     """
+
 from django.db import IntegrityError, models
 from rest_framework import generics, permissions, status, serializers
 from rest_framework.response import Response
@@ -227,7 +228,8 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-
+from rest_framework import generics, permissions
+from django.db import models
 from notique import settings
 from .models import Note, Share, User
 from .serializers import NoteSerializer, UserSerializer
@@ -380,3 +382,14 @@ class CustomAuthToken(APIView):
                 'user': UserSerializer(user).data
             })
         return Response({'error': 'Invalid Credentials'}, status=400)
+
+class UserSearchView(generics.ListAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        query = self.request.query_params.get('q', '')
+        return User.objects.filter(
+            models.Q(username__icontains=query) |
+            models.Q(email__icontains=query)
+        ).distinct()

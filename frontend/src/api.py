@@ -15,6 +15,16 @@ class API:
             )
         except requests.exceptions.ConnectionError:
             return None
+    # api.py
+    def search_users(self, query):
+        try:
+            return requests.get(
+                f"{self.base_url}/api/users/search/",
+                params={"q": query},
+                headers=self._headers()
+            )
+        except requests.exceptions.ConnectionError:
+            return None
 
     def set_credentials(self, token=None, local_id=None):
         self.token = token
