@@ -5,18 +5,18 @@ from utilities import show_snackbar
 def note_editor_view(page: ft.Page, refresh_notes):
     note_id = page.route.split("?note_id=")[-1] if "?note_id=" in page.route else None
     categories = ["Uncategorized", "Business", "Family", "Friends", "Personal"]
-    tagged_emails = []
+    tagged_usernames = []
     
-    # Helper functions
     def handle_content_change(e):
         content = content_field.value
         if not content:
             return
             
-        last_char = content[-1]
-        if last_char == "@":
-            search_users("")
-        elif "@" in content:
+        if "@" in content:
+            parts = content.rsplit("@", 1)
+            query = parts[-1].strip()
+            search_users(query)
+        else:
             users_search.visible = False
             page.update()
 
@@ -42,11 +42,10 @@ def note_editor_view(page: ft.Page, refresh_notes):
         current_content = content_field.value
         new_content = current_content.rsplit("@", 1)[0] + f"@{user['username']} "
         content_field.value = new_content
-        tagged_emails.append(user['email'])
+        tagged_usernames.append(user['username'])
         users_search.visible = False
         page.update()
 
-    # UI components
     users_search = ft.Column(
         visible=False,
         scroll=ft.ScrollMode.ALWAYS,
@@ -85,7 +84,7 @@ def note_editor_view(page: ft.Page, refresh_notes):
                         title_field.value = note.get("title", "")
                         content_field.value = note.get("content", "")
                         category_dropdown.value = note.get("category", "Uncategorized")
-                        tagged_emails.extend(note.get("tagged_emails", []))
+                        tagged_usernames.extend(note.get("tagged_usernames", []))
                 else:
                     local_notes = page.client_storage.get("local_notes") or []
                     note = next((n for n in local_notes if str(n.get("local_id")) == note_id), None)
@@ -93,7 +92,7 @@ def note_editor_view(page: ft.Page, refresh_notes):
                         title_field.value = note.get("title", "")
                         content_field.value = note.get("content", "")
                         category_dropdown.value = note.get("category", "Uncategorized")
-                        tagged_emails.extend(note.get("tagged_emails", []))
+                        tagged_usernames.extend(note.get("tagged_usernames", []))
         except Exception as e:
             show_snackbar(page, f"Error loading note: {str(e)}")
 
@@ -118,7 +117,7 @@ def note_editor_view(page: ft.Page, refresh_notes):
                 "title": title,
                 "content": content,
                 "category": category,
-                "tagged_emails": list(set(tagged_emails))  # Remove duplicates
+                "tagged_usernames": list(set(tagged_usernames))
             }
             
             if api.token:
@@ -159,9 +158,6 @@ def note_editor_view(page: ft.Page, refresh_notes):
             loading.visible = False
             page.update()
 
-    def cancel_edit(e):
-        page.go("/")
-
     return ft.View(
         "/notes",
         [
@@ -169,7 +165,7 @@ def note_editor_view(page: ft.Page, refresh_notes):
                 title=ft.Text("Edit Note" if note_id else "New Note"),
                 leading=ft.IconButton(
                     icon=ft.icons.ARROW_BACK,
-                    on_click=cancel_edit
+                    on_click=lambda e: page.go("/")
                 )
             ),
             ft.Column(
@@ -183,7 +179,7 @@ def note_editor_view(page: ft.Page, refresh_notes):
                     users_search,
                     ft.Row([
                         ft.ElevatedButton("Save", on_click=save_note),
-                        ft.TextButton("Cancel", on_click=cancel_edit)
+                        ft.TextButton("Cancel", on_click=lambda e: page.go("/"))
                     ], spacing=20)
                 ],
                 expand=True,
@@ -193,6 +189,8 @@ def note_editor_view(page: ft.Page, refresh_notes):
             error_text
         ]
     )
+
+
 # import flet as ft
 # from api import api
 # from utilities import show_snackbar

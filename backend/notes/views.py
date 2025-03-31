@@ -291,8 +291,8 @@ def sync_notes(request):
                     'user': user
                 }
             )
-            if 'tagged_emails' in note_data:
-                users = User.objects.filter(email__in=note_data['tagged_emails'])
+            if 'tagged_usernames' in note_data:
+                users = User.objects.filter(username__in=note_data['tagged_usernames'])
                 note.tagged_users.add(*users)
         
         Note.objects.filter(local_id=local_id).update(user=user, local_id=None)
@@ -312,13 +312,11 @@ class NoteListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = Note.objects.all()
-        
         if self.request.user.is_authenticated:
             return queryset.filter(
                 models.Q(user=self.request.user) |
                 models.Q(tagged_users=self.request.user)
             ).distinct()
-            
         local_id = self.request.META.get('HTTP_X_LOCAL_ID')
         return queryset.filter(local_id=local_id)
 
@@ -326,13 +324,14 @@ class NoteListCreateView(generics.ListCreateAPIView):
         note_data = {
             **serializer.validated_data,
             'category': self.request.data.get('category', 'Uncategorized'),
-            'tagged_emails': self.request.data.get('tagged_emails', [])
+            'tagged_usernames': self.request.data.get('tagged_usernames', [])
         }
-        if self.request.user.is_authenticated:
-            serializer.save(user=self.request.user, **note_data)
-        else:
-            local_id = self.request.META.get('HTTP_X_LOCAL_ID')
-            serializer.save(local_id=local_id, **note_data)
+        note = serializer.save(user=self.request.user) if self.request.user.is_authenticated else serializer.save()
+        
+        if 'tagged_usernames' in note_data:
+            users = User.objects.filter(username__in=note_data['tagged_usernames'])
+            note.tagged_users.add(*users)
+
 
 class NoteRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = NoteSerializer
@@ -393,3 +392,4 @@ class UserSearchView(generics.ListAPIView):
             models.Q(username__icontains=query) |
             models.Q(email__icontains=query)
         ).distinct()
+
