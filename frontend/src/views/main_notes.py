@@ -414,25 +414,6 @@ def main_notes_view(page: ft.Page, refresh_notes):
             loading
         ]
     )
-
-# # # import flet as ft
-# # # from api import api
-# # # #from backend.notes.views import share_note
-# # # from utilities import show_snackbar
-
-# # # def main_notes_view(page: ft.Page, refresh_notes):
-# # #     BG = "#041955"
-# # #     PINK = ft.colors.PINK_ACCENT
-# # #     user_name = (page.client_storage.get("current_user") or {}).get("username", "Guest")
-# # #     tasks = ft.ListView(expand=True, spacing=10)
-# # #     loading = ft.ProgressBar(visible=False)
-# # #     show_sidebar = False
-# # #     all_notes_data = []
-# # #     categories = ["All", "Business", "Family", "Friends", "Personal"]
-# # #     selected_category = ft.Ref[ft.Text]()
-# # #     selected_category.current = ft.Text("All")
-
-# # #     # UI Elements
 # # #     search_field = ft.TextField(
 # # #         hint_text="Search notes...",
 # # #         on_change=lambda e: filter_notes(),
