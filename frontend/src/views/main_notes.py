@@ -414,22 +414,6 @@ def main_notes_view(page: ft.Page, refresh_notes):
             loading
         ]
     )
-# # #                 )
-# # #             )
-# # #         page.update()
-
-# # #     def select_category(category):
-# # #         selected_category.current.value = category
-# # #         filter_notes()
-# # #         update_categories()
-
-# # #     # def build_note_card(note):
-# # #     #     delete_btn = ft.IconButton(
-# # #     #         icon=ft.icons.DELETE,
-# # #     #         icon_color="red",
-# # #     #         visible=False,
-# # #     #         on_click=lambda e, nid=note.get('id', note.get('local_id')): delete_note(nid)
-# # #     #     )
 
 # # #     #     checkbox = ft.Checkbox(
 # # #     #         label=note["title"],
